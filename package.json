@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "scripts": {
+    "watch": "mix watch --hot",
+    "build": "mix --production",
+    "lint:scripts": "eslint --ext .ts src || true",
+    "format:scripts": "eslint --fix --ext .ts src || true",
+    "lint:styles": "stylelint 'src/**/*.scss' || true",
+    "format:styles": "stylelint --fix 'src/**/*.scss' || true",
+    "lint": "yarn lint:scripts && yarn lint:styles",
+    "format": "yarn format:scripts && yarn format:styles"
+  },
+  "dependencies": {
+    "@types/lodash-es": "^4.17.5",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "eslint": "^7.32.0",
+    "filename-regex": "^2.0.1",
+    "laravel-mix": "^6.0.31",
+    "lodash-es": "^4.17.21",
+    "mix-html-builder": "^0.8.0",
+    "phaser": "^3.55.2",
+    "postcss": "^8.3.8",
+    "resolve-url-loader": "^4.0.0",
+    "sass": "^1.42.1",
+    "sass-loader": "^12.1.0",
+    "stylelint": "^13.13.1",
+    "stylelint-config-standard": "^22.0.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.4.3"
+  }
+}
