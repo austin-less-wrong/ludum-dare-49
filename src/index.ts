@@ -1,6 +1,6 @@
 import {Game, Scene, GameObjects, Types} from 'phaser';
 import {Grid} from './Grid';
-import {Grass, Sheep, Wolf} from './GridObjects';
+import {Rock, Grass, Sheep, Wolf} from './GridObjects';
 
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
@@ -20,9 +20,11 @@ export class MainScene extends Scene {
 
   create() {
     this.grid.create();
+    this.grid.add(new Rock(4, 4));
     this.grid.add(new Grass(0, 0));
     this.grid.add(new Sheep(1, 1));
     this.grid.add(new Wolf(2, 2));
+    this.grid.add(new Wolf(1, 7));
     this.grid.add(new Grass(5, 1));
 
     this.keys = this.input.keyboard.createCursorKeys();

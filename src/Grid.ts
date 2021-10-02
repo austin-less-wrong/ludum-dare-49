@@ -1,4 +1,5 @@
-import {Scene, GameObjects, Tilemaps} from 'phaser';
+import {minBy, every} from 'lodash-es';
+import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
 import {GridObject} from './GridObjects';
 import backgroundImage from './assets/background.png';
 import foregroundImage from './assets/foreground.png';
@@ -10,9 +11,14 @@ export class Grid {
   background!: Tilemaps.TilemapLayer;
   foreground!: Tilemaps.TilemapLayer;
   objects: GridObject[] = [];
+  directions: PhaserMath.Vector2[] = [];
 
   constructor(scene: Scene) {
     this.scene = scene;
+    this.directions.push(new PhaserMath.Vector2(1, 0));
+    this.directions.push(new PhaserMath.Vector2(-1, 0));
+    this.directions.push(new PhaserMath.Vector2(0, 1));
+    this.directions.push(new PhaserMath.Vector2(0, -1));
   }
 
   preload() {
@@ -65,5 +71,35 @@ export class Grid {
     object.location.x = x;
     object.location.y = y;
     layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+  }
+
+  distanceTo(from: PhaserMath.Vector2, to: PhaserMath.Vector2) {
+    return Math.abs(to.x - from.x) + Math.abs(to.y - from.y);
+  }
+
+  closestObject(x: number, y: number, criteria?: { label?: string, tags?: string[] }) {
+    // todo: create a spatial index
+    const from = new PhaserMath.Vector2(x, y);
+    return minBy(this.objects.filter(object => {
+      if(criteria && criteria.label && object.type.label !== criteria.label) {
+        return false;
+      } else if(criteria && criteria.tags && every(criteria.tags, tag => object.type.tags.includes(tag))) {
+        return false;
+      } else {
+        return true;
+      }
+    }), object => this.distanceTo(from, object.location));
+  }
+
+  directionTo(from: PhaserMath.Vector2, to: PhaserMath.Vector2) {
+    const direction = to.clone().subtract(from);
+    if(Math.abs(direction.x) > Math.abs(direction.y)) {
+      direction.y = 0;
+    } else {
+      direction.x = 0;
+    }
+    direction.x = Math.sign(direction.x);
+    direction.y = Math.sign(direction.y);
+    return direction;
   }
 }
