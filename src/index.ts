@@ -20,9 +20,10 @@ export class MainScene extends Scene {
 
   create() {
     this.grid.create();
-    this.grid.add(new Grass());
-    this.grid.add(new Sheep());
-    this.grid.add(new Wolf());
+    this.grid.add(new Grass(0, 0));
+    this.grid.add(new Sheep(1, 1));
+    this.grid.add(new Wolf(2, 2));
+    this.grid.add(new Grass(5, 1));
 
     this.keys = this.input.keyboard.createCursorKeys();
 
@@ -52,6 +53,12 @@ export class MainScene extends Scene {
     }
     if(this.input.keyboard.checkDown(this.keys.right)) {
       this.cameras.main.x -= 5;
+    }
+    if(this.input.keyboard.checkDown(this.keys.space)) {
+      this.cameras.main.zoom += 0.01;
+    }
+    if(this.input.keyboard.checkDown(this.keys.shift)) {
+      this.cameras.main.zoom -= 0.01;
     }
   }
 }
