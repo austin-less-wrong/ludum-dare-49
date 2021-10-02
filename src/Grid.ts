@@ -1,30 +1,31 @@
-import {Scene, GameObjects, Tilemaps} from 'phaser';
+import {Scene, GameObjects, Tilemaps, Geom} from 'phaser';
 import {GridObject} from './GridObjects';
+import tilemapImage from './assets/tilemap.png';
+import tilemapData from './assets/tilemap.txt';
 
-export class Grid extends GameObjects.GameObject {
-  map: Tilemaps.Tilemap;
+export class Grid {
+  scene: Scene;
+  map!: Tilemaps.Tilemap;
+  container!: GameObjects.Container;
   background!: Tilemaps.TilemapLayer;
   foreground!: Tilemaps.TilemapLayer;
   objects: GridObject[] = [];
 
   constructor(scene: Scene) {
-    super(scene, 'test');
+    this.scene = scene;
+  }
 
-    this.map = scene.make.tilemap({ data: [
-      [  30,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-      [  0,  1,  2,  3,  0,  0,  0,  1,  2,  3,  0 ],
-      [  0,  5,  6,  7,  0,  0,  0,  5,  6,  7,  0 ],
-      [  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-      [  0,  0,  0, 14, 13, 14,  0,  0,  0,  0,  0 ],
-      [  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-      [  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0 ],
-      [  0,  0, 14, 14, 14, 14, 14,  0,  0,  0, 15 ],
-      [  0,  0,  0,  0,  0,  0,  0,  0,  0, 15, 15 ],
-      [ 35, 36, 37,  0,  0,  0,  0,  0, 15, 15, 15 ],
-      [ 39, 39, 39, 39, 39, 39, 39, 39, 39, 39, 39 ]
-    ], tileWidth: 32, tileHeight: 32 });
-    const tiles = this.map.addTilesetImage('tilemap');
-    this.map.createLayer(0, tiles, 0, 0);
+  preload() {
+    this.scene.load.image('tilemap', tilemapImage);
+    this.scene.load.tilemapTiledJSON('tilemap', tilemapData);
+  }
+
+  create() {
+    this.container = this.scene.add.container();
+    this.map = this.scene.make.tilemap({ key: 'tilemap' });
+    const tiles = this.map.addTilesetImage('Desert', 'tilemap');
+    this.background = this.map.createLayer('Ground', tiles, 0, 0);
+    this.container.add(this.background);
 
     // this.background = this.map.createLayer('background', tiles, 0, 0);
     // this.foreground = this.map.createLayer('foreground', tiles, 0, 0);
@@ -38,5 +39,10 @@ export class Grid extends GameObjects.GameObject {
     for(const object of this.objects) {
       object.update(this);
     }
+  }
+
+  objectAt(point: Geom.Point) {
+    // todo: create a spatial index
+    return this.objects.find(object => Geom.Point.Equals(object.location, point));
   }
 }

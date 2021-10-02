@@ -5,14 +5,14 @@ mix.webpackConfig({
     module: {
         rules: [
             {
-                test: /\.png$/,
-                loader: 'file-loader',
+                test: /\.txt$/,
+                use: 'file-loader',
                 exclude: /node_modules/,
             },
         ],
     },
     resolve: {
-        extensions: ['.png'],
+        extensions: ['.txt'],
     },
 });
 

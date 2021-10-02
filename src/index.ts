@@ -1,46 +1,36 @@
-import {Game, Scene, GameObjects, Input} from 'phaser';
+import {Game, Scene, GameObjects, Types} from 'phaser';
 import {Grid} from './Grid';
 import {Grass, Sheep, Wolf} from './GridObjects';
-import tilemapImage from './assets/tilemap.png';
 
 export class MainScene extends Scene {
-  background!: GameObjects.Container;
   ui!: GameObjects.Container;
   accumulator = 0;
 
-  upKey!: Input.Keyboard.Key;
-  downKey!: Input.Keyboard.Key;
-  leftKey!: Input.Keyboard.Key;
-  rightKey!: Input.Keyboard.Key;
+  keys!: Types.Input.Keyboard.CursorKeys;
 
-  grid!: Grid;
+  grid = new Grid(this);
 
   constructor() {
     super({key: 'main'});
   }
 
   preload() {
-    this.load.image('tilemap', tilemapImage);
+    this.grid.preload();
   }
 
   create() {
-    this.grid = new Grid(this);
+    this.grid.create();
     this.grid.add(new Grass());
     this.grid.add(new Sheep());
     this.grid.add(new Wolf());
 
-    this.upKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-    this.downKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-    this.leftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-    this.rightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+    this.keys = this.input.keyboard.createCursorKeys();
 
-    this.background = this.add.container();
-    this.background.add(this.add.text(100, 100, 'Scene'));
     this.ui = this.add.container();
-    this.ui.add(this.add.text(0, 0, 'UI'));
+    this.ui.add(this.add.text(0, 0, 'UI', {fontFamily: 'Verdana', fontSize: '20px'}));
 
     const uiCamera = this.cameras.add(0, 0, 800, 600);
-    uiCamera.ignore(this.background);
+    uiCamera.ignore(this.grid.container);
     this.cameras.main.ignore(this.ui);
   }
 
@@ -51,17 +41,17 @@ export class MainScene extends Scene {
       this.grid.step();
     }
 
-    if(this.input.keyboard.checkDown(this.upKey)) {
-      this.cameras.main.y += 1;
+    if(this.input.keyboard.checkDown(this.keys.up)) {
+      this.cameras.main.y += 5;
     }
-    if(this.input.keyboard.checkDown(this.downKey)) {
-      this.cameras.main.y -= 1;
+    if(this.input.keyboard.checkDown(this.keys.down)) {
+      this.cameras.main.y -= 5;
     }
-    if(this.input.keyboard.checkDown(this.leftKey)) {
-      this.cameras.main.x += 1;
+    if(this.input.keyboard.checkDown(this.keys.left)) {
+      this.cameras.main.x += 5;
     }
-    if(this.input.keyboard.checkDown(this.rightKey)) {
-      this.cameras.main.x -= 1;
+    if(this.input.keyboard.checkDown(this.keys.right)) {
+      this.cameras.main.x -= 5;
     }
   }
 }
