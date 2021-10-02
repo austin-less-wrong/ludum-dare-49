@@ -1,4 +1,4 @@
-import {minBy, every} from 'lodash-es';
+import {minBy, every, pull} from 'lodash-es';
 import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
 import {GridObject} from './GridObjects';
 import backgroundImage from './assets/background.png';
@@ -7,8 +7,7 @@ import foregroundImage from './assets/foreground.png';
 export class Grid {
   map!: Tilemaps.Tilemap;
   container!: GameObjects.Container;
-  background!: Tilemaps.TilemapLayer;
-  foreground!: Tilemaps.TilemapLayer;
+  layers: Record<string, { layer: Tilemaps.TilemapLayer, default: number }> = {};
   objects: GridObject[] = [];
   directions: PhaserMath.Vector2[] = [];
 
@@ -28,12 +27,20 @@ export class Grid {
     this.container = this.scene.add.container();
     this.map = this.scene.make.tilemap({ width: this.width, height: this.height, tileWidth: 32, tileHeight: 32 });
     const background = this.map.addTilesetImage('background', undefined, 32, 32, 1, 1);
-    this.background = this.map.createBlankLayer('background', background);
+    const backgroundLayer = this.map.createBlankLayer('background', background);
     const foreground = this.map.addTilesetImage('foreground', undefined, 32, 32, 1, 1);
-    this.foreground = this.map.createBlankLayer('foreground', foreground);
-    this.container.add(this.background);
-    this.container.add(this.foreground);
-    this.background.fill(29);
+    const foregroundLayer = this.map.createBlankLayer('foreground', foreground);
+    this.container.add(backgroundLayer);
+    this.container.add(foregroundLayer);
+    backgroundLayer.fill(29);
+    this.layers['background'] = {
+      layer: backgroundLayer,
+      default: 29,
+    };
+    this.layers['foreground'] = {
+      layer: foregroundLayer,
+      default: -1,
+    };
   }
 
   add(object: GridObject) {
@@ -41,8 +48,21 @@ export class Grid {
       throw new Error('Location is not open!');
     }
     this.objects.push(object);
-    const layer = object.type.layer === 'foreground' ? this.foreground : this.background;
-    layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+    this.layers[object.type.layer].layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+  }
+
+  tryAdd(object: GridObject) {
+    if(this.isOpen(object.location.x, object.location.y, object.type.layer)) {
+      this.add(object);
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  remove(object: GridObject) {
+    pull(this.objects, object);
+    this.layers[object.type.layer].layer.putTileAt(this.layers[object.type.layer].default, object.location.x, object.location.y);
   }
 
   step() {
@@ -64,11 +84,19 @@ export class Grid {
     if(!this.isOpen(x, y, object.type.layer)) {
       throw new Error('Location is not open!');
     }
-    const layer = object.type.layer === 'foreground' ? this.foreground : this.background;
-    layer.putTileAt(-1, object.location.x, object.location.y);
+    this.layers[object.type.layer].layer.putTileAt(this.layers[object.type.layer].default, object.location.x, object.location.y);
     object.location.x = x;
     object.location.y = y;
-    layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+    this.layers[object.type.layer].layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+  }
+
+  tryMove(object: GridObject, x: number, y: number) {
+    if(this.isOpen(x, y, object.type.layer)) {
+      this.move(object, x, y);
+      return true;
+    } else {
+      return false;
+    }
   }
 
   distanceTo(from: PhaserMath.Vector2, to: PhaserMath.Vector2) {
@@ -99,5 +127,10 @@ export class Grid {
     direction.x = Math.sign(direction.x);
     direction.y = Math.sign(direction.y);
     return direction;
+  }
+
+  tryStepTowards(object: GridObject, x: number, y: number) {
+    const direction = this.directionTo(object.location, new PhaserMath.Vector2(x, y));
+    return this.tryMove(object, object.location.x + direction.x, object.location.y + direction.y);
   }
 }

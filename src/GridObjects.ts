@@ -1,4 +1,4 @@
-import {shuffle} from 'lodash-es';
+import {shuffle, random} from 'lodash-es';
 import {Math as PhaserMath} from 'phaser';
 import {Grid} from './Grid';
 
@@ -34,13 +34,12 @@ export class Grass extends GridObject {
   static tile = 39;
   static layer = 'background' as const;
   update(grid: Grid) {
-    if(Math.random() < 0.3) {
-      for(const direction of shuffle(grid.directions)) {
-        if(grid.isOpen(this.location.x + direction.x, this.location.y + direction.y, this.type.layer)) {
-          grid.add(new Grass(this.location.x + direction.x, this.location.y + direction.y));
-          break;
-        }
-      }
+    if(Math.random() < 0.4) {
+      const direction = grid.directions[random(0, grid.directions.length - 1)];
+      grid.tryAdd(new Grass(this.location.x + direction.x, this.location.y + direction.y));
+    }
+    if(Math.random() > 0.95) {
+      grid.remove(this);
     }
   }
 }
@@ -51,9 +50,7 @@ export class Sheep extends GridObject {
   static tile = 1;
   static layer = 'foreground' as const;
   update(grid: Grid) {
-    if(grid.isOpen(this.location.x + 1, this.location.y, this.type.layer)) {
-      grid.move(this, this.location.x + 1, this.location.y);
-    }
+    grid.tryMove(this, this.location.x + 1, this.location.y);
   }
 }
 
@@ -64,13 +61,9 @@ export class Wolf extends GridObject {
   static layer = 'foreground' as const;
   update(grid: Grid) {
     const closestSheep = grid.closestObject(this.location.x, this.location.y, { label: 'Sheep' });
-    const sheepDirection = closestSheep ? grid.directionTo(this.location, closestSheep.location) : null;
-    if(sheepDirection && grid.isOpen(this.location.x + sheepDirection.x, this.location.y + sheepDirection.y, this.type.layer)) {
-      grid.move(this, this.location.x + sheepDirection.x, this.location.y + sheepDirection.y);
-    } else {
+    if(!closestSheep || !grid.tryStepTowards(this, closestSheep.location.x, closestSheep.location.y)) {
       for(const direction of shuffle(grid.directions)) {
-        if(grid.isOpen(this.location.x + direction.x, this.location.y + direction.y, this.type.layer)) {
-          grid.move(this, this.location.x + direction.x, this.location.y + direction.y);
+        if(grid.tryMove(this, this.location.x + direction.x, this.location.y + direction.y)) {
           break;
         }
       }
