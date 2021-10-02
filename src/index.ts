@@ -1,4 +1,5 @@
-import {Game, Scene, GameObjects, Types} from 'phaser';
+import {Game, Scene, GameObjects, Types, Math as PhaserMath} from 'phaser';
+import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
 import {Rock, Grass, Sheep, Wolf} from './GridObjects';
 import borderImage from './assets/borders.png';
@@ -6,9 +7,14 @@ import borderImage from './assets/borders.png';
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
   accumulator = 0;
-
+  targetHeight = 1;
+  height = 1;
+  maxZoom = 5;
   keys!: Types.Input.Keyboard.CursorKeys;
-
+  mouseDown = false;
+  lastMousePosition = new PhaserMath.Vector2();
+  newMousePosition = new PhaserMath.Vector2();
+  borders!: GameObjects.TileSprite;
   grid = new Grid(this, 100, 100);
 
   constructor() {
@@ -21,7 +27,8 @@ export class MainScene extends Scene {
   }
 
   create() {
-    const borders = this.add.tileSprite(2000, 2000, 7500, 7500, 'borders');
+    this.borders = this.add.tileSprite(0, 0, this.sys.game.canvas.width * this.maxZoom, this.sys.game.canvas.height * this.maxZoom, 'borders');
+    this.borders.setOrigin(0, 0);
 
     this.grid.create();
     this.grid.add(new Rock(4, 4));
@@ -46,9 +53,9 @@ export class MainScene extends Scene {
     this.ui = this.add.container();
     this.ui.add(this.add.text(0, 0, 'UI', {fontFamily: 'Verdana', fontSize: '20px'}));
 
-    const uiCamera = this.cameras.add(0, 0, 800, 600);
+    const uiCamera = this.cameras.add(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height);
     uiCamera.ignore(this.grid.container);
-    uiCamera.ignore(borders);
+    uiCamera.ignore(this.borders);
     this.cameras.main.ignore(this.ui);
   }
 
@@ -59,24 +66,36 @@ export class MainScene extends Scene {
       this.grid.step();
     }
 
-    if(this.input.keyboard.checkDown(this.keys.up)) {
-      this.cameras.main.scrollY += 5;
+    if (this.input.manager.activePointer.leftButtonDown()) {
+      if(this.mouseDown) {
+        this.cameras.main.getWorldPoint(this.input.manager.activePointer.x, this.input.manager.activePointer.y, this.newMousePosition);
+        const deltaX = this.newMousePosition.x - this.lastMousePosition.x;
+        const deltaY = this.newMousePosition.y - this.lastMousePosition.y;
+        this.cameras.main.scrollX -= deltaX;
+        this.cameras.main.scrollY -= deltaY;
+        this.newMousePosition.x -= deltaX;
+        this.newMousePosition.y -= deltaY;
+        const lastMousePosition = this.lastMousePosition;
+        this.lastMousePosition = this.newMousePosition;
+        this.newMousePosition = lastMousePosition;
+      } else {
+        this.mouseDown = true;
+        this.cameras.main.getWorldPoint(this.input.manager.activePointer.x, this.input.manager.activePointer.y, this.lastMousePosition);
+      }
+    } else {
+      this.mouseDown = false;
     }
-    if(this.input.keyboard.checkDown(this.keys.down)) {
-      this.cameras.main.scrollY -= 5;
-    }
-    if(this.input.keyboard.checkDown(this.keys.left)) {
-      this.cameras.main.scrollX += 5;
-    }
-    if(this.input.keyboard.checkDown(this.keys.right)) {
-      this.cameras.main.scrollX -= 5;
-    }
-    if(this.input.keyboard.checkDown(this.keys.space)) {
-      this.cameras.main.zoom += 0.01;
-    }
-    if(this.input.keyboard.checkDown(this.keys.shift)) {
-      this.cameras.main.zoom -= 0.01;
-    }
+
+    this.targetHeight += this.input.manager.activePointer.deltaY * 0.005;
+    this.input.manager.activePointer.deltaY = 0;
+    this.targetHeight = Math.min(Math.max(this.targetHeight, 1), this.maxZoom);
+    this.height = deltaInterp(this.height, this.targetHeight, 10, delta * 0.001);
+    this.cameras.main.zoom = 1 / this.height;
+
+    this.cameras.main.scrollY = Math.min(Math.max(this.cameras.main.scrollY, -300), 100 * 32 - (this.sys.game.canvas.height - 300));
+    this.cameras.main.scrollX = Math.min(Math.max(this.cameras.main.scrollX, -300), 100 * 32 - (this.sys.game.canvas.width - 300));
+    this.borders.tilePositionX = this.borders.x = this.cameras.main.scrollX - this.sys.game.canvas.width * 0.5 * (this.height - 1);
+    this.borders.tilePositionY = this.borders.y = this.cameras.main.scrollY - this.sys.game.canvas.height * 0.5 * (this.height - 1);
   }
 }
 
