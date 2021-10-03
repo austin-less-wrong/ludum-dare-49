@@ -1,10 +1,14 @@
 import {range, random} from 'lodash-es';
-import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom} from 'phaser';
+import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
 import {Rock, Grass, Sheep, Wolf} from './GridObjects';
 import borderImage from './assets/borders.png';
 import uiFrameImage from './assets/ui_frame.png';
+import musicImage from './assets/music.png';
+import noMusicImage from './assets/nomusic.png';
+import musicSound from './assets/music.mp3';
+import clickSound from './assets/click.mp3';
 
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
@@ -16,7 +20,9 @@ export class MainScene extends Scene {
   mouseDown = false;
   lastMousePosition = new PhaserMath.Vector2();
   newMousePosition = new PhaserMath.Vector2();
+  musicToggle!: GameObjects.Image;
   gridBounds: Geom.Rectangle = new Geom.Rectangle(10, 10, 778, 504);
+  sounds: Record<string, Sound.BaseSound> = {};
   borders!: GameObjects.TileSprite;
   grid = new Grid(this, 129, 80);
 
@@ -27,6 +33,10 @@ export class MainScene extends Scene {
   preload() {
     this.load.image('borders', borderImage);
     this.load.image('ui_frame', uiFrameImage);
+    this.load.image('music', musicImage);
+    this.load.image('nomusic', noMusicImage);
+    this.load.audio('music', musicSound);
+    this.load.audio('click', clickSound);
     this.grid.preload();
   }
 
@@ -60,11 +70,30 @@ export class MainScene extends Scene {
 
     this.ui = this.add.container();
     this.ui.add(this.add.image(0, 0, 'ui_frame').setOrigin(0, 0));
+    this.musicToggle = this.add.image(145, 556, 'music').setScale(0.2).setInteractive().on('pointerdown', this.toggleMusic, this);
+    this.ui.add(this.musicToggle);
 
     const uiCamera = this.cameras.add(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height);
     uiCamera.ignore(this.grid.container);
     uiCamera.ignore(this.borders);
     this.cameras.main.ignore(this.ui);
+
+    this.sounds = {
+      music: this.sound.add('music', { loop: true }),
+      click: this.sound.add('click', { volume: 0.4 }),
+    };
+    this.sounds.music.play();
+  }
+
+  toggleMusic() {
+    this.sounds.click.play();
+    if(this.sounds.music.isPlaying) {
+      this.sounds.music.stop();
+      this.musicToggle.setTexture('nomusic');
+    } else {
+      this.sounds.music.play();
+      this.musicToggle.setTexture('music');
+    }
   }
 
   update(time: number, delta: number) {

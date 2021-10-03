@@ -5,14 +5,14 @@ mix.webpackConfig({
     module: {
         rules: [
             {
-                test: /\.txt$/,
+                test: /\.(txt|mp3)$/,
                 use: 'file-loader',
                 exclude: /node_modules/,
             },
         ],
     },
     resolve: {
-        extensions: ['.txt'],
+        extensions: ['.txt', '.mp3'],
     },
 });
 
