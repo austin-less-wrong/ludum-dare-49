@@ -88,13 +88,14 @@ export class Wolf extends GridObject {
     const closestSheep = grid.closestObject(this.location.x, this.location.y, { label: 'Sheep' });
     // Walk towards the closest sheep, but only if we're not already standing next to it.
     let sheepDistance = closestSheep && grid.distanceTo(this.location, closestSheep.location);
-    if (sheepDistance && sheepDistance > 1) {
-      const sheepDirection = grid.directionTo(this.location, closestSheep!.location);
+    if (closestSheep && sheepDistance && sheepDistance > 1) {
+      const sheepDirection = grid.directionTo(this.location, closestSheep.location);
       if (!grid.tryMove(this, this.location.x + sheepDirection.x, this.location.y + sheepDirection.y)) {
         // If we can't move directly towards it, at least don't move directly away.
         // NOTE: if we can only move directly away, the wolf just stays still.
         for(const direction of shuffle(grid.directions)) {
-          if (Math.abs(direction.x - sheepDirection.x) == 2 || Math.abs(direction.y - sheepDirection.y) == 2) {
+          // TODO: this == 2 seems wrong
+          if (Math.abs(direction.x - sheepDirection.x) === 2 || Math.abs(direction.y - sheepDirection.y) === 2) {
             continue;
           }
           if (grid.tryMove(this, this.location.x + direction.x, this.location.y + direction.y)) {
@@ -113,15 +114,12 @@ export class Wolf extends GridObject {
 
     // If we're next to a sheep, eat it!
     sheepDistance = closestSheep && grid.distanceTo(this.location, closestSheep.location);
-    if (closestSheep && sheepDistance == 1) {
-      const newLocation = closestSheep!.location;
-      grid.remove(closestSheep!);
+    if (closestSheep && sheepDistance === 1) {
+      const newLocation = closestSheep.location;
+      grid.remove(closestSheep);
       grid.move(this, newLocation.x, newLocation.y);
       // this.location = newLocation;
       this.stepsSinceEat = 0;
-    } else {
-      const [sheepX, sheepY] = [closestSheep?.location.x, closestSheep?.location.y];
-      const [wolfX, wolfY] = [this.location.x, this.location.y];
     }
 
     this.stepsSinceEat += 1;
