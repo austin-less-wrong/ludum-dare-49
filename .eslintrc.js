@@ -24,6 +24,7 @@ module.exports = {
     'no-shadow': 'error',
     'brace-style': 'error',
     'quotes': ['error', 'single', {allowTemplateLiterals: true}],
+    '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
   },
 };

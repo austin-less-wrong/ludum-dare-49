@@ -34,11 +34,11 @@ export class Grass extends GridObject {
   static tile = 39;
   static layer = 'background' as const;
   update(grid: Grid) {
-    if(Math.random() < 0.4) {
+    if(Math.random() < 0.2) {
       const direction = grid.randomDirection();
       grid.tryAdd(new Grass(this.location.x + direction.x, this.location.y + direction.y));
     }
-    if(Math.random() > 0.95) {
+    if(Math.random() > 0.97) {
       grid.remove(this);
     }
   }

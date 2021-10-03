@@ -1,5 +1,5 @@
 import {range, random, values} from 'lodash-es';
-import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound} from 'phaser';
+import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound, Tweens} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
 import {Rock, Grass, Sheep, Wolf} from './GridObjects';
@@ -12,6 +12,10 @@ import abilityFrameImage from './assets/ability_frame.png';
 import sheepAbilityImage from './assets/sheep_ability.png';
 import grassAbilityImage from './assets/grass_ability.png';
 import wolfAbilityImage from './assets/wolf_ability.png';
+import rainAbilityImage from './assets/rain_ability.png';
+import rainCursorImage from './assets/rain_ability_cursor.png';
+import cloud1Image from './assets/cloud1.png';
+import cloud2Image from './assets/cloud2.png';
 import musicSound from './assets/music.mp3';
 import clickSound from './assets/click.mp3';
 import swishSound from './assets/swish.mp3';
@@ -20,10 +24,11 @@ import failSound from './assets/fail.mp3';
 interface Ability {
   description: string,
   image: string,
+  cursor: string,
   cost: number,
   tooltip?: GameObjects.Container,
   do: (grid: Grid, x: number, y: number) => unknown,
-};
+}
 
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
@@ -38,9 +43,11 @@ export class MainScene extends Scene {
   newMousePosition = new PhaserMath.Vector2();
   musicToggle!: GameObjects.Image;
   powerDisplay!: GameObjects.Text;
+  error: {container: GameObjects.Container, tween: Tweens.Tween} | null = null;
   gridBounds: Geom.Rectangle = new Geom.Rectangle(10, 10, 778, 504);
   sounds: Record<string, Sound.BaseSound> = {};
   borders!: GameObjects.TileSprite;
+  effects!: GameObjects.Container;
   grid = new Grid(this, 129, 80, 32);
   power = 0;
   powerGainRate = 1;
@@ -61,6 +68,9 @@ export class MainScene extends Scene {
     this.load.image('sheep_ability', sheepAbilityImage);
     this.load.image('grass_ability', grassAbilityImage);
     this.load.image('wolf_ability', wolfAbilityImage);
+    this.load.image('rain_ability', rainAbilityImage);
+    this.load.image('cloud1', cloud1Image);
+    this.load.image('cloud2', cloud2Image);
     this.load.image('power', powerImage);
     this.load.audio('music', musicSound);
     this.load.audio('click', clickSound);
@@ -106,31 +116,75 @@ export class MainScene extends Scene {
     this.powerDisplay = this.add.text(155, 526, 'x0', {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
     this.ui.add(this.powerDisplay);
 
+    this.effects = this.add.container();
+    this.anims.create({
+      key: 'rain',
+      frames: [
+        { key: 'cloud1' },
+        { key: 'cloud2' },
+      ],
+      frameRate: 3,
+      repeat: -1,
+    });
+
     this.abilities = {
       wolf: {
         description: 'Wolf: -5 \u2B50\nMake a wolf',
         image: 'wolf_ability',
+        cursor: wolfAbilityImage,
         cost: 5,
         do: (grid, x, y) => {
-          return grid.tryAdd(new Wolf(x, y));
+          if(grid.tryAdd(new Wolf(x, y))) {
+            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'wolf_ability');
+            return true;
+          } else {
+            this.flashError('Can\'t place that there');
+            return false;
+          }
         },
       },
       sheep: {
         description: 'Sheep: -3 \u2B50\nMake a sheep',
         image: 'sheep_ability',
+        cursor: sheepAbilityImage,
         cost: 3,
         do: (grid, x, y) => {
-          return grid.tryAdd(new Sheep(x, y));
+          if(grid.tryAdd(new Sheep(x, y))) {
+            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'sheep_ability');
+            return true;
+          } else {
+            this.flashError('Can\'t place that there');
+            return false;
+          }
         },
       },
       grass: {
         description: 'Grass: -1 \u2B50\nMake a grass',
         image: 'grass_ability',
+        cursor: grassAbilityImage,
         cost: 1,
         do: (grid, x, y) => {
-          return grid.tryAdd(new Grass(x, y));
+          if(grid.tryAdd(new Grass(x, y))) {
+            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'grass_ability');
+            return true;
+          } else {
+            this.flashError('Can\'t place that there');
+            return false;
+          }
         },
-      }
+      },
+      rain: {
+        description: 'Rain: -10 \u2B50\nSummon rain to generate plants',
+        image: 'rain_ability',
+        cursor: rainCursorImage,
+        cost: 1,
+        do: (grid, x, y) => {
+          this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'rain', 3000);
+          const interval = setInterval(() => grid.tryAdd(new Grass(x + random(-2, 2), y + random(-2, 2))), 200);
+          setTimeout(() => clearInterval(interval), 3000);
+          return true;
+        },
+      },
     };
 
     values(this.abilities).map((ability, index) => {
@@ -142,7 +196,7 @@ export class MainScene extends Scene {
       image.setInteractive().on('pointerover', () => this.hoverAbility(ability));
       image.setInteractive().on('pointerout', () => this.unhoverAbility(ability));
 
-      const text = this.add.text(0, 470, ability.description, {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
+      const text = this.add.text(0, 0, ability.description, {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
       text.x = x - text.width + 23;
       text.y = 496 - text.height;
       const rectangle = this.add.rectangle(text.x - 10, text.y - 10, text.width + 20, text.height + 20, 0xffffff, 0.8);
@@ -156,6 +210,7 @@ export class MainScene extends Scene {
     const uiCamera = this.cameras.add(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height);
     uiCamera.ignore(this.grid.container);
     uiCamera.ignore(this.borders);
+    uiCamera.ignore(this.effects);
     this.cameras.main.ignore(this.ui);
 
     this.sounds = {
@@ -164,7 +219,6 @@ export class MainScene extends Scene {
       swish: this.sound.add('swish', { volume: 0.1 }),
       fail: this.sound.add('fail', { volume: 0.6 }),
     };
-    this.sounds.music.play(); // start music on load (by default, it's stopped)
     this.sound.pauseOnBlur = false;
   }
 
@@ -184,14 +238,17 @@ export class MainScene extends Scene {
       this.sounds.click.play();
       this.currentAbility = ability;
       this.justClickedAbility = true;
-      this.input.setDefaultCursor(`url(images/${ability.image}.png), pointer`);
+      this.input.setDefaultCursor(`url(${ability.cursor}), pointer`);
     } else {
       this.sounds.fail.play();
+      this.flashError('Not enough \u2B50');
     }
   }
 
   finishAbility() {
-    if(!this.currentAbility) { return; }
+    if(!this.currentAbility) {
+      return;
+    }
     if(this.power > this.currentAbility.cost) {
       const position = this.cameras.main.getWorldPoint(this.input.manager.activePointer.x, this.input.manager.activePointer.y, this.newMousePosition);
       const x = Math.floor(position.x / this.grid.tileSize);
@@ -204,6 +261,7 @@ export class MainScene extends Scene {
       }
     } else {
       this.sounds.fail.play();
+      this.flashError('Not enough \u2B50');
     }
   }
 
@@ -213,6 +271,55 @@ export class MainScene extends Scene {
 
   unhoverAbility(ability: Ability) {
     ability.tooltip!.visible = false;
+  }
+
+  showAnimation(x: number, y: number, animation: string, duration: number) {
+    const sprite = this.add.sprite(x, y, animation).play(animation);
+    setTimeout(() => sprite.destroy(), duration);
+    this.effects.add(sprite);
+  }
+
+  showImageEffect(x: number, y: number, image: string) {
+    const effect = this.add.image(x, y, image);
+    this.tweens.add({
+      targets: effect,
+      scale: 2,
+      alpha: 0,
+      duration: 1000,
+      ease: 'Cubic.out',
+      onComplete: () => effect.destroy(),
+    });
+    this.effects.add(effect);
+  }
+
+  flashError(message: string) {
+    const text = this.add.text(0, 0, message, {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
+    text.x = this.sys.game.canvas.width / 2 - text.width / 2;
+    text.y = 100 - text.height / 2;
+    const rectangle = this.add.rectangle(text.x - 10, text.y - 10, text.width + 20, text.height + 20, 0xff0000, 0.8);
+    rectangle.setOrigin(0, 0).setStrokeStyle(2, 0x000000);
+    if(this.error) {
+      this.error.container.destroy();
+      this.error.tween.stop();
+      this.error = null;
+    }
+    const container = this.add.container();
+    container.add(rectangle).add(text);
+    this.ui.add(container);
+    this.error = {
+      container: container,
+      tween: this.tweens.add({
+        targets: container,
+        alpha: 0,
+        duration: 1000,
+        delay: 2000,
+        ease: 'Cubic.out',
+        onComplete: () => {
+          container.destroy();
+          this.error = null;
+        },
+      }),
+    };
   }
 
   update(time: number, delta: number) {
@@ -226,11 +333,11 @@ export class MainScene extends Scene {
     this.power += this.powerGainRate * delta * 0.001;
     this.powerDisplay.setText(`x${Math.floor(this.power)}`);
 
-    if (this.currentAbility == null) {
+    if (this.currentAbility === null) {
       if (this.gridBounds.contains(this.input.manager.activePointer.x, this.input.manager.activePointer.y)) {
-        game.canvas.style.cursor = "pointer";
+        game.canvas.style.cursor = 'pointer';
       } else {
-        game.canvas.style.cursor = "default";
+        game.canvas.style.cursor = 'default';
       }
     }
 
@@ -258,7 +365,7 @@ export class MainScene extends Scene {
       } else if(this.currentAbility && this.justClicked && !this.justClickedAbility) {
         this.currentAbility = null;
         this.sounds.swish.play();
-        game.canvas.style.cursor = "default";
+        game.canvas.style.cursor = 'default';
       }
       this.justClicked = false;
     } else {
