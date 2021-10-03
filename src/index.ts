@@ -226,6 +226,14 @@ export class MainScene extends Scene {
     this.power += this.powerGainRate * delta * 0.001;
     this.powerDisplay.setText(`x${Math.floor(this.power)}`);
 
+    if (this.currentAbility == null) {
+      if (this.gridBounds.contains(this.input.manager.activePointer.x, this.input.manager.activePointer.y)) {
+        game.canvas.style.cursor = "pointer";
+      } else {
+        game.canvas.style.cursor = "default";
+      }
+    }
+
     if (this.input.manager.activePointer.leftButtonDown()) {
       if(this.dragging) {
         this.cameras.main.getWorldPoint(this.input.manager.activePointer.x, this.input.manager.activePointer.y, this.newMousePosition);
