@@ -11,15 +11,17 @@ import powerImage from './assets/power.png';
 import abilityFrameImage from './assets/ability_frame.png';
 import sheepAbilityImage from './assets/sheep_ability.png';
 import grassAbilityImage from './assets/grass_ability.png';
+import wolfAbilityImage from './assets/wolf_ability.png';
 import musicSound from './assets/music.mp3';
 import clickSound from './assets/click.mp3';
+import swishSound from './assets/swish.mp3';
 import failSound from './assets/fail.mp3';
 
 interface Ability {
-  name: string,
   description: string,
   image: string,
   cost: number,
+  tooltip?: GameObjects.Container,
   do: (grid: Grid, x: number, y: number) => unknown,
 };
 
@@ -58,9 +60,11 @@ export class MainScene extends Scene {
     this.load.image('ability_frame', abilityFrameImage);
     this.load.image('sheep_ability', sheepAbilityImage);
     this.load.image('grass_ability', grassAbilityImage);
+    this.load.image('wolf_ability', wolfAbilityImage);
     this.load.image('power', powerImage);
     this.load.audio('music', musicSound);
     this.load.audio('click', clickSound);
+    this.load.audio('swish', swishSound);
     this.load.audio('fail', failSound);
     this.grid.preload();
   }
@@ -103,9 +107,16 @@ export class MainScene extends Scene {
     this.ui.add(this.powerDisplay);
 
     this.abilities = {
+      wolf: {
+        description: 'Wolf: -5 \u2B50\nMake a wolf',
+        image: 'wolf_ability',
+        cost: 5,
+        do: (grid, x, y) => {
+          return grid.tryAdd(new Wolf(x, y));
+        },
+      },
       sheep: {
-        name: 'Sheep',
-        description: 'Make a sheep',
+        description: 'Sheep: -3 \u2B50\nMake a sheep',
         image: 'sheep_ability',
         cost: 3,
         do: (grid, x, y) => {
@@ -113,8 +124,7 @@ export class MainScene extends Scene {
         },
       },
       grass: {
-        name: 'Grass',
-        description: 'Make a grass',
+        description: 'Grass: -1 \u2B50\nMake a grass',
         image: 'grass_ability',
         cost: 1,
         do: (grid, x, y) => {
@@ -129,6 +139,18 @@ export class MainScene extends Scene {
       const image = this.add.image(x, 556, ability.image);
       this.ui.add(frame).add(image);
       image.setInteractive().on('pointerdown', () => this.startAbility(ability));
+      image.setInteractive().on('pointerover', () => this.hoverAbility(ability));
+      image.setInteractive().on('pointerout', () => this.unhoverAbility(ability));
+
+      const text = this.add.text(0, 470, ability.description, {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
+      text.x = x - text.width + 23;
+      text.y = 496 - text.height;
+      const rectangle = this.add.rectangle(text.x - 10, text.y - 10, text.width + 20, text.height + 20, 0xffffff, 0.8);
+      rectangle.setOrigin(0, 0).setStrokeStyle(2, 0x000000);
+      ability.tooltip = this.add.container();
+      ability.tooltip.add(rectangle).add(text);
+      ability.tooltip.visible = false;
+      this.ui.add(ability.tooltip);
     });
 
     const uiCamera = this.cameras.add(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height);
@@ -138,8 +160,9 @@ export class MainScene extends Scene {
 
     this.sounds = {
       music: this.sound.add('music', { loop: true }),
-      click: this.sound.add('click', { volume: 0.3 }),
-      fail: this.sound.add('fail'),
+      click: this.sound.add('click', { volume: 0.2 }),
+      swish: this.sound.add('swish', { volume: 0.1 }),
+      fail: this.sound.add('fail', { volume: 0.6 }),
     };
   }
 
@@ -181,6 +204,14 @@ export class MainScene extends Scene {
     }
   }
 
+  hoverAbility(ability: Ability) {
+    ability.tooltip!.visible = true;
+  }
+
+  unhoverAbility(ability: Ability) {
+    ability.tooltip!.visible = false;
+  }
+
   update(time: number, delta: number) {
     this.accumulator += delta;
     if(this.accumulator > 1000) {
@@ -215,7 +246,7 @@ export class MainScene extends Scene {
         }
       } else if(this.currentAbility && this.justClicked && !this.justClickedAbility) {
         this.currentAbility = null;
-        this.sounds.fail.play();
+        this.sounds.swish.play();
       }
       this.justClicked = false;
     } else {
@@ -225,7 +256,7 @@ export class MainScene extends Scene {
     if (this.input.manager.activePointer.rightButtonDown()) {
       if(this.currentAbility) {
         this.currentAbility = null;
-        this.sounds.fail.play();
+        this.sounds.swish.play();
       }
     }
     this.justClickedAbility = false;
