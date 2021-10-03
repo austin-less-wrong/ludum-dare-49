@@ -17,7 +17,8 @@ mix.webpackConfig({
 });
 
 mix.setPublicPath('public');
+mix.setResourceRoot('./');
 mix.ts('src/index.ts', 'public/js');
 mix.sass('src/index.scss', 'public/css');
-mix.html({output: '', inject: true});
+mix.html({output: '', inject: true, versioning: true});
 mix.version();
