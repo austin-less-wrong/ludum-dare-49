@@ -118,8 +118,14 @@ export class Wolf extends GridObject {
       const newLocation = closestSheep.location;
       grid.remove(closestSheep);
       grid.move(this, newLocation.x, newLocation.y);
-      // this.location = newLocation;
       this.stepsSinceEat = 0;
+      if(Math.random() < 0.5) {
+        for(const direction of shuffle(grid.directions)) {
+          if(grid.tryAdd(new Wolf(this.location.x + direction.x, this.location.y + direction.y))) {
+            break;
+          }
+        }
+      }
     }
 
     this.stepsSinceEat += 1;
