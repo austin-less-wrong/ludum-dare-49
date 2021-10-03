@@ -164,6 +164,8 @@ export class MainScene extends Scene {
       swish: this.sound.add('swish', { volume: 0.1 }),
       fail: this.sound.add('fail', { volume: 0.6 }),
     };
+    this.sounds.music.play(); // start music on load (by default, it's stopped)
+    this.sound.pauseOnBlur = false;
   }
 
   toggleMusic() {
