@@ -21,7 +21,7 @@ export abstract class GridObject {
 export class Rock extends GridObject {
   static label = 'Rock';
   static tags = ['inanimate'];
-  static tile = 31;
+  static tile = 4;
   static layer = 'foreground' as const;
   update() {
     // Do nothing
@@ -31,7 +31,7 @@ export class Rock extends GridObject {
 export class Grass extends GridObject {
   static label = 'Grass';
   static tags = ['plant'];
-  static tile = 39;
+  static tile = 0;
   static layer = 'background' as const;
   update(grid: Grid) {
     if(Math.random() < 0.2) {
@@ -81,7 +81,7 @@ export class Sheep extends GridObject {
 export class Wolf extends GridObject {
   static label = 'Wolf';
   static tags = ['carnivore'];
-  static tile = 2;
+  static tile = 3;
   static layer = 'foreground' as const;
   stepsSinceEat = 0;
   update(grid: Grid) {

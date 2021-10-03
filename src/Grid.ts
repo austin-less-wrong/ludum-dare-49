@@ -1,8 +1,8 @@
 import {minBy, every, pull, random} from 'lodash-es';
 import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
 import {GridObject} from './GridObjects';
-import backgroundImage from './assets/background.png';
-import foregroundImage from './assets/foreground.png';
+import groundImage from './assets/ground.png';
+import tilesetImage from './assets/tileset.png';
 
 export class Grid {
   map!: Tilemaps.Tilemap;
@@ -21,23 +21,25 @@ export class Grid {
   }
 
   preload() {
-    this.scene.load.image('background', backgroundImage);
-    this.scene.load.image('foreground', foregroundImage);
+    this.scene.load.image('ground', groundImage);
+    this.scene.load.image('tileset', tilesetImage);
   }
 
   create() {
     this.container = this.scene.add.container();
     this.map = this.scene.make.tilemap({ width: this.width, height: this.height, tileWidth: this.tileSize, tileHeight: this.tileSize });
-    const background = this.map.addTilesetImage('background', undefined, 32, 32, 1, 1);
-    const backgroundLayer = this.map.createBlankLayer('background', background);
-    const foreground = this.map.addTilesetImage('foreground', undefined, 32, 32, 1, 1);
-    const foregroundLayer = this.map.createBlankLayer('foreground', foreground);
+    const ground = this.map.addTilesetImage('ground', undefined, 128, 128, 0, 0);
+    const groundLayer = this.map.createBlankLayer('ground', ground);
+    const tileset = this.map.addTilesetImage('tileset', undefined, 128, 128, 0, 0);
+    const backgroundLayer = this.map.createBlankLayer('background', tileset);
+    const foregroundLayer = this.map.createBlankLayer('foreground', tileset);
+    groundLayer.fill(0);
+    this.container.add(groundLayer);
     this.container.add(backgroundLayer);
     this.container.add(foregroundLayer);
-    backgroundLayer.fill(29);
     this.layers['background'] = {
       layer: backgroundLayer,
-      default: 29,
+      default: -1,
     };
     this.layers['foreground'] = {
       layer: foregroundLayer,

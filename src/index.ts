@@ -35,7 +35,7 @@ export class MainScene extends Scene {
   accumulator = 0;
   targetHeight = 1;
   height = 1;
-  maxZoom = 5.5;
+  maxZoom = 10;
   keys!: Types.Input.Keyboard.CursorKeys;
   dragging = false;
   justClicked = false;
@@ -48,7 +48,7 @@ export class MainScene extends Scene {
   sounds: Record<string, Sound.BaseSound> = {};
   borders!: GameObjects.TileSprite;
   effects!: GameObjects.Container;
-  grid = new Grid(this, 129, 80, 32);
+  grid = new Grid(this, 129, 80, 64);
   power = 0;
   powerGainRate = 1;
   abilities: Record<string, Ability> = {};
@@ -381,7 +381,7 @@ export class MainScene extends Scene {
     this.justClickedAbility = false;
 
     if(this.gridBounds.contains(this.input.manager.activePointer.x, this.input.manager.activePointer.y)) {
-      this.targetHeight += this.input.manager.activePointer.deltaY * 0.005;
+      this.targetHeight += this.input.manager.activePointer.deltaY * 0.01;
     }
 
     this.input.manager.activePointer.deltaY = 0;
