@@ -60,6 +60,38 @@ export class MainScene extends Scene {
   }
 
   preload() {
+    const progressBar = this.add.graphics();
+    const progressText = this.add.text(
+      this.sys.game.canvas.width / 2 - 44,
+      this.sys.game.canvas.height / 2 - 12,
+      'LOADING...',
+      {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'},
+    );
+    this.load.on('progress', (value: number) => {
+      const outerPadding = 20;
+      const innerPadding = 10;
+      const height = 60;
+      progressBar.clear();
+      progressBar.fillStyle(0xaaaaaa, 1);
+      progressBar.fillRect(
+        outerPadding,
+        this.sys.game.canvas.height / 2 - height / 2,
+        this.sys.game.canvas.width - outerPadding * 2,
+        height,
+      );
+      progressBar.fillStyle(0xffffff, 1);
+      progressBar.fillRect(
+        outerPadding + innerPadding,
+        this.sys.game.canvas.height / 2 - height / 2 + innerPadding,
+        (this.sys.game.canvas.width - outerPadding * 2 - innerPadding * 2) * value,
+        height - innerPadding * 2,
+      );
+    });
+    this.load.on('complete', () => {
+      progressBar.destroy();
+      progressText.destroy();
+    });
+
     this.load.image('borders', borderImage);
     this.load.image('ui_frame', uiFrameImage);
     this.load.image('music', musicImage);
