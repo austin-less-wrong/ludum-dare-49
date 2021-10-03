@@ -1,8 +1,9 @@
-import {Game, Scene, GameObjects, Types, Math as PhaserMath} from 'phaser';
+import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
 import {Rock, Grass, Sheep, Wolf} from './GridObjects';
 import borderImage from './assets/borders.png';
+import uiFrameImage from './assets/ui_frame.png';
 
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
@@ -14,6 +15,7 @@ export class MainScene extends Scene {
   mouseDown = false;
   lastMousePosition = new PhaserMath.Vector2();
   newMousePosition = new PhaserMath.Vector2();
+  gridBounds: Geom.Rectangle = new Geom.Rectangle(10, 10, 778, 504);
   borders!: GameObjects.TileSprite;
   grid = new Grid(this, 100, 100);
 
@@ -23,6 +25,7 @@ export class MainScene extends Scene {
 
   preload() {
     this.load.image('borders', borderImage);
+    this.load.image('ui_frame', uiFrameImage);
     this.grid.preload();
   }
 
@@ -51,7 +54,7 @@ export class MainScene extends Scene {
     this.keys = this.input.keyboard.createCursorKeys();
 
     this.ui = this.add.container();
-    this.ui.add(this.add.text(0, 0, 'UI', {fontFamily: 'Verdana', fontSize: '20px'}));
+    this.ui.add(this.add.image(0, 0, 'ui_frame').setOrigin(0, 0));
 
     const uiCamera = this.cameras.add(0, 0, this.sys.game.canvas.width, this.sys.game.canvas.height);
     uiCamera.ignore(this.grid.container);
@@ -78,7 +81,7 @@ export class MainScene extends Scene {
         const lastMousePosition = this.lastMousePosition;
         this.lastMousePosition = this.newMousePosition;
         this.newMousePosition = lastMousePosition;
-      } else {
+      } else if(this.gridBounds.contains(this.input.manager.activePointer.x, this.input.manager.activePointer.y)) {
         this.mouseDown = true;
         this.cameras.main.getWorldPoint(this.input.manager.activePointer.x, this.input.manager.activePointer.y, this.lastMousePosition);
       }
@@ -86,7 +89,10 @@ export class MainScene extends Scene {
       this.mouseDown = false;
     }
 
-    this.targetHeight += this.input.manager.activePointer.deltaY * 0.005;
+    if(this.gridBounds.contains(this.input.manager.activePointer.x, this.input.manager.activePointer.y)) {
+      this.targetHeight += this.input.manager.activePointer.deltaY * 0.005;
+    }
+
     this.input.manager.activePointer.deltaY = 0;
     this.targetHeight = Math.min(Math.max(this.targetHeight, 1), this.maxZoom);
     this.height = deltaInterp(this.height, this.targetHeight, 10, delta * 0.001);
