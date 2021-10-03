@@ -184,6 +184,7 @@ export class MainScene extends Scene {
       this.sounds.click.play();
       this.currentAbility = ability;
       this.justClickedAbility = true;
+      this.input.setDefaultCursor(`url(images/${ability.image}.png), pointer`);
     } else {
       this.sounds.fail.play();
     }
@@ -249,6 +250,7 @@ export class MainScene extends Scene {
       } else if(this.currentAbility && this.justClicked && !this.justClickedAbility) {
         this.currentAbility = null;
         this.sounds.swish.play();
+        game.canvas.style.cursor = "default";
       }
       this.justClicked = false;
     } else {
