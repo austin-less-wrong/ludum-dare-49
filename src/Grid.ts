@@ -13,7 +13,7 @@ export class Grid {
   startNextStep = false;
   stepProgress: IterableIterator<GridObject> | null = null;
 
-  constructor(private scene: Scene, public width: number, public height: number) {
+  constructor(private scene: Scene, public width: number, public height: number, public tileSize: number) {
     this.directions.push(new PhaserMath.Vector2(1, 0));
     this.directions.push(new PhaserMath.Vector2(-1, 0));
     this.directions.push(new PhaserMath.Vector2(0, 1));
@@ -27,7 +27,7 @@ export class Grid {
 
   create() {
     this.container = this.scene.add.container();
-    this.map = this.scene.make.tilemap({ width: this.width, height: this.height, tileWidth: 32, tileHeight: 32 });
+    this.map = this.scene.make.tilemap({ width: this.width, height: this.height, tileWidth: this.tileSize, tileHeight: this.tileSize });
     const background = this.map.addTilesetImage('background', undefined, 32, 32, 1, 1);
     const backgroundLayer = this.map.createBlankLayer('background', background);
     const foreground = this.map.addTilesetImage('foreground', undefined, 32, 32, 1, 1);
