@@ -1,3 +1,4 @@
+import {range, random} from 'lodash-es';
 import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
@@ -10,14 +11,14 @@ export class MainScene extends Scene {
   accumulator = 0;
   targetHeight = 1;
   height = 1;
-  maxZoom = 5;
+  maxZoom = 5.5;
   keys!: Types.Input.Keyboard.CursorKeys;
   mouseDown = false;
   lastMousePosition = new PhaserMath.Vector2();
   newMousePosition = new PhaserMath.Vector2();
   gridBounds: Geom.Rectangle = new Geom.Rectangle(10, 10, 778, 504);
   borders!: GameObjects.TileSprite;
-  grid = new Grid(this, 100, 100);
+  grid = new Grid(this, 129, 80);
 
   constructor() {
     super({key: 'main'});
@@ -34,22 +35,26 @@ export class MainScene extends Scene {
     this.borders.setOrigin(0, 0);
 
     this.grid.create();
-    this.grid.add(new Rock(4, 4));
-    this.grid.add(new Grass(0, 0));
-    this.grid.add(new Sheep(1, 1));
-    this.grid.add(new Wolf(2, 2));
-    this.grid.add(new Wolf(1, 7));
-    this.grid.add(new Grass(5, 1));
-    this.grid.add(new Rock(20, 0));
-    this.grid.add(new Rock(20, 1));
-    this.grid.add(new Rock(20, 2));
-    this.grid.add(new Rock(20, 3));
-    this.grid.add(new Rock(20, 4));
-    this.grid.add(new Rock(20, 5));
-    this.grid.add(new Rock(20, 6));
-    this.grid.add(new Rock(20, 7));
-    this.grid.add(new Rock(20, 8));
-    this.grid.add(new Rock(20, 9));
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for(const item of range(0, 100)) {
+      while(!this.grid.tryAdd(new Rock(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for(const item of range(0, 300)) {
+      while(!this.grid.tryAdd(new Grass(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for(const item of range(0, 300)) {
+      while(!this.grid.tryAdd(new Sheep(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for(const item of range(0, 50)) {
+      while(!this.grid.tryAdd(new Wolf(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+    }
 
     this.keys = this.input.keyboard.createCursorKeys();
 
@@ -68,6 +73,7 @@ export class MainScene extends Scene {
       this.accumulator -= 1000;
       this.grid.step();
     }
+    this.grid.update();
 
     if (this.input.manager.activePointer.leftButtonDown()) {
       if(this.mouseDown) {
@@ -98,8 +104,8 @@ export class MainScene extends Scene {
     this.height = deltaInterp(this.height, this.targetHeight, 10, delta * 0.001);
     this.cameras.main.zoom = 1 / this.height;
 
-    this.cameras.main.scrollY = Math.min(Math.max(this.cameras.main.scrollY, -300), 100 * 32 - (this.sys.game.canvas.height - 300));
-    this.cameras.main.scrollX = Math.min(Math.max(this.cameras.main.scrollX, -300), 100 * 32 - (this.sys.game.canvas.width - 300));
+    this.cameras.main.scrollY = Math.min(Math.max(this.cameras.main.scrollY, -300), this.grid.height * 32 - (this.sys.game.canvas.height - 300));
+    this.cameras.main.scrollX = Math.min(Math.max(this.cameras.main.scrollX, -300), this.grid.width * 32 - (this.sys.game.canvas.width - 300));
     this.borders.tilePositionX = this.borders.x = this.cameras.main.scrollX - this.sys.game.canvas.width * 0.5 * (this.height - 1);
     this.borders.tilePositionY = this.borders.y = this.cameras.main.scrollY - this.sys.game.canvas.height * 0.5 * (this.height - 1);
   }

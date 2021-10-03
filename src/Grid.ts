@@ -1,4 +1,4 @@
-import {minBy, every, pull} from 'lodash-es';
+import {minBy, every, pull, random} from 'lodash-es';
 import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
 import {GridObject} from './GridObjects';
 import backgroundImage from './assets/background.png';
@@ -10,6 +10,8 @@ export class Grid {
   layers: Record<string, { layer: Tilemaps.TilemapLayer, default: number }> = {};
   objects: GridObject[] = [];
   directions: PhaserMath.Vector2[] = [];
+  startNextStep = false;
+  stepProgress: IterableIterator<GridObject> | null = null;
 
   constructor(private scene: Scene, public width: number, public height: number) {
     this.directions.push(new PhaserMath.Vector2(1, 0));
@@ -66,8 +68,25 @@ export class Grid {
   }
 
   step() {
-    for(const object of this.objects) {
-      object.update(this);
+    this.startNextStep = true;
+  }
+
+  update() {
+    if(this.stepProgress) {
+      const start = Date.now();
+      while(this.stepProgress && Date.now() - start < 10) {
+        for(let item = 0; item < 100; item++) {
+          const object = this.stepProgress.next();
+          if(object.done) {
+            this.stepProgress = null;
+            break;
+          }
+          object.value.update(this);
+        }
+      }
+    } else if(this.startNextStep) {
+      this.startNextStep = false;
+      this.stepProgress = this.objects[Symbol.iterator]();
     }
   }
 
@@ -103,13 +122,15 @@ export class Grid {
     return Math.abs(to.x - from.x) + Math.abs(to.y - from.y);
   }
 
-  closestObject(x: number, y: number, criteria?: { label?: string, tags?: string[] }) {
+  closestObject(x: number, y: number, criteria?: { label?: string, tags?: string[], not?: GridObject }) {
     // todo: create a spatial index
     const from = new PhaserMath.Vector2(x, y);
     return minBy(this.objects.filter(object => {
       if(criteria && criteria.label && object.type.label !== criteria.label) {
         return false;
       } else if(criteria && criteria.tags && every(criteria.tags, tag => object.type.tags.includes(tag))) {
+        return false;
+      } else if(criteria && criteria.not && object === criteria.not) {
         return false;
       } else {
         return true;
@@ -127,6 +148,10 @@ export class Grid {
     direction.x = Math.sign(direction.x);
     direction.y = Math.sign(direction.y);
     return direction;
+  }
+
+  randomDirection() {
+    return this.directions[random(0, this.directions.length - 1)];
   }
 
   tryStepTowards(object: GridObject, x: number, y: number) {
