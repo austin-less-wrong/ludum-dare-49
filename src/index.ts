@@ -36,6 +36,27 @@ interface Ability {
   do: (grid: Grid, x: number, y: number) => unknown,
 }
 
+export class LoseScene extends Scene {
+  constructor() {
+    super({key: 'lose'});
+  }
+
+  create() {
+    this.add.text(
+      this.sys.game.canvas.width / 2,
+      this.sys.game.canvas.height / 2 - 25,
+      'Game over.',
+      { fontFamily: 'Helvetica', fontSize: '40px', color: 'white' },
+    ).setOrigin(0.5);
+    this.add.text(
+      this.sys.game.canvas.width / 2,
+      this.sys.game.canvas.height / 2 + 25,
+      'All of the animals died.',
+      { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
+    ).setOrigin(0.5);
+  }
+}
+
 export class MainScene extends Scene {
   ui!: GameObjects.Container;
   accumulator = 0;
@@ -432,5 +453,5 @@ export const game = new Game({
   parent: 'container',
   width: 800,
   height: 600,
-  scene: MainScene,
+  scene: [MainScene, LoseScene],
 });
