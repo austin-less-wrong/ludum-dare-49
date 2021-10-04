@@ -100,12 +100,13 @@ export class MainScene extends Scene {
   borders!: GameObjects.TileSprite;
   effects!: GameObjects.Container;
   grid = new Grid(this, 129, 80, 64);
-  power = 50;
-  powerGainRate = 0.1;
+  powerGainRate = 1;
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
   justClickedAbility = false;
   loadComplete = false;
+
+  power = 0;
 
   constructor() {
     super({key: 'main'});
@@ -172,6 +173,8 @@ export class MainScene extends Scene {
   }
 
   create() {
+    this.power = 50;
+
     this.borders = this.add.tileSprite(0, 0, this.sys.game.canvas.width * this.maxZoom, this.sys.game.canvas.height * this.maxZoom, 'borders');
     this.borders.setOrigin(0, 0);
 
@@ -181,7 +184,7 @@ export class MainScene extends Scene {
       { type: Rock, count: 100 },
       { type: Grass, count: 600 },
       { type: Sheep, count: 100 },
-      { type: Tiger, count: 2 },
+      { type: Tiger, count: 3 },
     ];
     for(const { type, count } of startingCounts) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
