@@ -1,1 +1,2 @@
-body{background:#333}
+@import url(https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Cabin+Sketch:wght@700&display=swap);
+body,html{background:#a1ae25;color:#31210d;font-family:Architects Daughter,cursive;margin:0;padding:0}main{background:#e1dc6b;display:flex;flex-direction:column;margin:0 auto;max-width:900px;min-height:100vh;text-align:center}h1{font-family:Cabin Sketch,cursive;font-size:70px;margin:10px 0 20px}h2{margin:0}
