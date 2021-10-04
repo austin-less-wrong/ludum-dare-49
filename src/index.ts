@@ -22,7 +22,7 @@ import swishSound from './assets/swish.mp3';
 import failSound from './assets/fail.mp3';
 import sheepSound from './assets/sheep.mp3';
 import wolfSound from './assets/wolf.mp3';
-import rainSound from './assets/click.mp3';
+import rainSound from './assets/rain.mp3';
 
 interface Ability {
   description: string,
@@ -247,7 +247,7 @@ export class MainScene extends Scene {
       fail: this.sound.add('fail', { volume: 0.6 }),
       tiger: this.sound.add('wolf', { volume: 0.1 }),
       sheep: this.sound.add('sheep', { volume: 0.1 }),
-      rain: this.sound.add('rain', { volume: 0.1 }),
+      rain: this.sound.add('rain', { volume: 0.4 }),
     };
     this.sound.pauseOnBlur = false;
   }
