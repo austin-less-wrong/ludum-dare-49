@@ -56,7 +56,7 @@ export class MainScene extends Scene {
   effects!: GameObjects.Container;
   grid = new Grid(this, 129, 80, 64);
   power = 0;
-  powerGainRate = 1;
+  powerGainRate = 0.1;
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
   justClickedAbility = false;
