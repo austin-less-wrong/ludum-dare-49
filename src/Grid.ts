@@ -1,6 +1,6 @@
 import {minBy, every, pull, random} from 'lodash-es';
 import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
-import {GridObject} from './GridObjects';
+import {GridObject, isAnimal} from './GridObjects';
 import groundImage from './assets/ground.png';
 import tilesetImage from './assets/tileset.png';
 
@@ -8,6 +8,7 @@ export class Grid {
   map!: Tilemaps.Tilemap;
   container!: GameObjects.Container;
   layers: Record<string, { layer: Tilemaps.TilemapLayer, default: number }> = {};
+  objectTypeToCount: Map<typeof GridObject, number> = new Map();
   objects: GridObject[] = [];
   directions: PhaserMath.Vector2[] = [];
   startNextStep = false;
@@ -53,6 +54,9 @@ export class Grid {
     }
     this.objects.push(object);
     this.layers[object.type.layer].layer.putTileAt(object.type.tile, object.location.x, object.location.y);
+
+    const currentCount = this.objectTypeToCount.get(object.type) ?? 0;
+    this.objectTypeToCount.set(object.type, currentCount + 1);
   }
 
   tryAdd(object: GridObject) {
@@ -67,6 +71,9 @@ export class Grid {
   remove(object: GridObject) {
     pull(this.objects, object);
     this.layers[object.type.layer].layer.putTileAt(this.layers[object.type.layer].default, object.location.x, object.location.y);
+
+    const currentCount = this.objectTypeToCount.get(object.type) ?? 0;
+    this.objectTypeToCount.set(object.type, currentCount - 1);
   }
 
   step() {
@@ -84,6 +91,17 @@ export class Grid {
             break;
           }
           object.value.update(this);
+
+          let shouldLose = true;
+          for (const [type, count] of this.objectTypeToCount.entries()) {
+            if (isAnimal(type) && count !== 0) {
+              shouldLose = false;
+            }
+          }
+
+          if (shouldLose) {
+            this.scene.scene.start('lose');
+          }
         }
       }
     } else if(this.startNextStep) {

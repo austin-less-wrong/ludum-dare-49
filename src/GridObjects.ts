@@ -2,6 +2,19 @@ import {shuffle} from 'lodash-es';
 import {Math as PhaserMath} from 'phaser';
 import {Grid} from './Grid';
 
+export function isAnimal(type: typeof GridObject) {
+  switch(type) {
+  case Sheep:
+  case Wolf:
+    return true;
+
+  case Rock:
+  case Grass:
+  default:
+    return false;
+  }
+}
+
 export abstract class GridObject {
   static label: string;
   static tags: string[];
