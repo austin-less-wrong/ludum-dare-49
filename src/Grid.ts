@@ -97,13 +97,6 @@ export class Grid {
             break;
           }
           object.value.update(this);
-
-          for (const [type, count] of this.objectTypeToCount.entries()) {
-            if (isLiving(type) && count === 0) {
-              this.removeAll();
-              this.scene.scene.start('lose', { species: type });
-            }
-          }
         }
       }
     } else if(this.startNextStep) {
