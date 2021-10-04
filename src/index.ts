@@ -100,7 +100,7 @@ export class MainScene extends Scene {
   borders!: GameObjects.TileSprite;
   effects!: GameObjects.Container;
   grid = new Grid(this, 129, 80, 64);
-  power = 0;
+  power = 8;
   powerGainRate = 0.1;
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
@@ -177,25 +177,17 @@ export class MainScene extends Scene {
 
     this.grid.create();
 
-    const creationMultiplier = (x: number) => Math.floor(x * 100);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, creationMultiplier(1))) {
-      while(!this.grid.tryAdd(new Rock(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, creationMultiplier(3))) {
-      while(!this.grid.tryAdd(new Grass(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, creationMultiplier(3))) {
-      while(!this.grid.tryAdd(new Sheep(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, creationMultiplier(5))) {
-      while(!this.grid.tryAdd(new Tiger(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+    const startingCounts = [
+      { type: Rock, count: 100 },
+      { type: Grass, count: 600 },
+      { type: Sheep, count: 100 },
+      { type: Tiger, count: 20 },
+    ];
+    for(const { type, count } of startingCounts) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      for(const _ of range(0, count)) {
+        while(!this.grid.tryAdd(new type(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+      }
     }
 
     this.keys = this.input.keyboard.createCursorKeys();
