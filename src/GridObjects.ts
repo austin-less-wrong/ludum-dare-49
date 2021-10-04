@@ -2,14 +2,14 @@ import {shuffle} from 'lodash-es';
 import {Math as PhaserMath} from 'phaser';
 import {Grid} from './Grid';
 
-export function isAnimal(type: typeof GridObject) {
+export function isLiving(type: typeof GridObject) {
   switch(type) {
   case Sheep:
-  case Wolf:
+  case Tiger:
+  case Grass:
     return true;
 
   case Rock:
-  case Grass:
   default:
     return false;
   }

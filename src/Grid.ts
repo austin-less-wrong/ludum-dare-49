@@ -1,6 +1,6 @@
 import {minBy, every, pull, random} from 'lodash-es';
 import {Scene, GameObjects, Tilemaps, Math as PhaserMath} from 'phaser';
-import {GridObject, isAnimal} from './GridObjects';
+import {GridObject, isLiving} from './GridObjects';
 import groundImage from './assets/ground.png';
 import tilesetImage from './assets/tileset.png';
 
@@ -92,15 +92,10 @@ export class Grid {
           }
           object.value.update(this);
 
-          let shouldLose = true;
           for (const [type, count] of this.objectTypeToCount.entries()) {
-            if (isAnimal(type) && count !== 0) {
-              shouldLose = false;
+            if (isLiving(type) && count === 0) {
+              this.scene.scene.start('lose', { species: type });
             }
-          }
-
-          if (shouldLose) {
-            this.scene.scene.start('lose');
           }
         }
       }

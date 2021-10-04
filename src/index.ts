@@ -2,7 +2,7 @@ import {range, random, values} from 'lodash-es';
 import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound, Tweens} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
-import {Rock, Grass, Sheep, Tiger} from './GridObjects';
+import {Rock, Grass, Sheep, Tiger, GridObject} from './GridObjects';
 import borderImage from './assets/borders.png';
 import uiFrameImage from './assets/ui_frame.png';
 import musicImage from './assets/music.png';
@@ -37,8 +37,22 @@ interface Ability {
 }
 
 export class LoseScene extends Scene {
+  private deathMessage: string | undefined = 'Unknown lose condition.';
   constructor() {
     super({key: 'lose'});
+  }
+
+  init(data: { species: typeof GridObject }) {
+    this.deathMessage = (function() {
+      switch(data.species) {
+      case Sheep:
+        return 'All sheep have gone extinct.';
+      case Tiger:
+        return 'All tigers have gone extinct.';
+      case Grass:
+        return 'All the grass has died.';
+      }
+    })();
   }
 
   create() {
@@ -51,7 +65,13 @@ export class LoseScene extends Scene {
     this.add.text(
       this.sys.game.canvas.width / 2,
       this.sys.game.canvas.height / 2 + 25,
-      'All of the animals died.',
+      this.deathMessage!,
+      { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
+    ).setOrigin(0.5);
+    this.add.text(
+      this.sys.game.canvas.width / 2,
+      this.sys.game.canvas.height / 2 + 50,
+      'Click anywhere to start over.',
       { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
     ).setOrigin(0.5);
 
