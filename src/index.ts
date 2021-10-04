@@ -247,7 +247,7 @@ export class MainScene extends Scene {
       fail: this.sound.add('fail', { volume: 0.6 }),
       tiger: this.sound.add('wolf', { volume: 0.1 }),
       sheep: this.sound.add('sheep', { volume: 0.1 }),
-      rain: this.sound.add('rain', { volume: 0.1 }),
+      rain: this.sound.add('rain', { volume: 0.4 }),
     };
     this.sound.pauseOnBlur = false;
   }
