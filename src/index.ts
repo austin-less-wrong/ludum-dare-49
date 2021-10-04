@@ -147,23 +147,24 @@ export class MainScene extends Scene {
 
     this.grid.create();
 
+    const creationMultiplier = (x: number) => Math.floor(x * 100);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, 100)) {
+    for(const item of range(0, creationMultiplier(1))) {
       while(!this.grid.tryAdd(new Rock(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, 300)) {
+    for(const item of range(0, creationMultiplier(3))) {
       while(!this.grid.tryAdd(new Grass(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, 300)) {
+    for(const item of range(0, creationMultiplier(3))) {
       while(!this.grid.tryAdd(new Sheep(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    for(const item of range(0, 50)) {
+    for(const item of range(0, creationMultiplier(5))) {
       while(!this.grid.tryAdd(new Tiger(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
     }
 
