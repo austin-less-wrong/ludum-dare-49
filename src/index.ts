@@ -54,6 +54,10 @@ export class LoseScene extends Scene {
       'All of the animals died.',
       { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
     ).setOrigin(0.5);
+
+    this.input.on('pointerdown', () => {
+      this.scene.start('main');
+    });
   }
 }
 
@@ -81,12 +85,17 @@ export class MainScene extends Scene {
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
   justClickedAbility = false;
+  loadComplete = false;
 
   constructor() {
     super({key: 'main'});
   }
 
   preload() {
+    if (this.loadComplete) {
+      return;
+    }
+
     const progressBar = this.add.graphics();
     const progressText = this.add.text(
       this.sys.game.canvas.width / 2 - 44,
@@ -117,6 +126,7 @@ export class MainScene extends Scene {
     this.load.on('complete', () => {
       progressBar.destroy();
       progressText.destroy();
+      this.loadComplete = true;
     });
 
     this.load.image('borders', borderImage);
