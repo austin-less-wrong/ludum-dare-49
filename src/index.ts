@@ -100,7 +100,7 @@ export class MainScene extends Scene {
   borders!: GameObjects.TileSprite;
   effects!: GameObjects.Container;
   grid = new Grid(this, 129, 80, 64);
-  power = 8;
+  power = 50;
   powerGainRate = 0.1;
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
