@@ -22,7 +22,7 @@ import swishSound from './assets/swish.mp3';
 import failSound from './assets/fail.mp3';
 import sheepSound from './assets/sheep.mp3';
 import wolfSound from './assets/wolf.mp3';
-import rainSound from './assets/click.mp3';
+import rainSound from './assets/rain.mp3';
 
 interface Ability {
   description: string,
