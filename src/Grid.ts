@@ -76,6 +76,12 @@ export class Grid {
     this.objectTypeToCount.set(object.type, currentCount - 1);
   }
 
+  removeAll() {
+    while(this.objects.length > 0) {
+      this.remove(this.objects[0]);
+    }
+  }
+
   step() {
     this.startNextStep = true;
   }
@@ -94,6 +100,7 @@ export class Grid {
 
           for (const [type, count] of this.objectTypeToCount.entries()) {
             if (isLiving(type) && count === 0) {
+              this.removeAll();
               this.scene.scene.start('lose', { species: type });
             }
           }
