@@ -129,7 +129,7 @@ export class Tiger extends GridObject {
     }
 
     this.stepsSinceEat += 1;
-    // if wolves go too long between eating, they starve to death.
+    // if tigers go too long between eating, they starve to death.
     if(this.stepsSinceEat > 5) {
       grid.remove(this);
     }

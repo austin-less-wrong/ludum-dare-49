@@ -21,7 +21,7 @@ import clickSound from './assets/click.mp3';
 import swishSound from './assets/swish.mp3';
 import failSound from './assets/fail.mp3';
 import sheepSound from './assets/sheep.mp3';
-import wolfSound from './assets/wolf.mp3';
+import tigerSound from './assets/tiger.mp3';
 import rainSound from './assets/rain.mp3';
 
 interface Ability {
@@ -113,7 +113,7 @@ export class MainScene extends Scene {
     this.load.audio('swish', swishSound);
     this.load.audio('fail', failSound);
     this.load.audio('sheep', sheepSound);
-    this.load.audio('wolf', wolfSound);
+    this.load.audio('tiger', tigerSound);
     this.load.audio('rain', rainSound);
     this.grid.preload();
   }
@@ -245,7 +245,7 @@ export class MainScene extends Scene {
       click: this.sound.add('click', { volume: 0.2 }),
       swish: this.sound.add('swish', { volume: 0.1 }),
       fail: this.sound.add('fail', { volume: 0.6 }),
-      tiger: this.sound.add('wolf', { volume: 0.1 }),
+      tiger: this.sound.add('tiger', { volume: 0.1 }),
       sheep: this.sound.add('sheep', { volume: 0.1 }),
       rain: this.sound.add('rain', { volume: 0.4 }),
     };
