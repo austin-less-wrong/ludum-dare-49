@@ -10,8 +10,10 @@ import noMusicImage from './assets/nomusic.png';
 import powerImage from './assets/power.png';
 import abilityFrameImage from './assets/ability_frame.png';
 import sheepAbilityImage from './assets/sheep_ability.png';
+import sheepCursorImage from './assets/sheep_ability_cursor.png';
 import grassAbilityImage from './assets/grass_ability.png';
 import tigerAbilityImage from './assets/tiger_ability.png';
+import tigerCursorImage from './assets/tiger_ability_cursor.png';
 import rainAbilityImage from './assets/rain_ability.png';
 import rainCursorImage from './assets/rain_ability_cursor.png';
 import cloud1Image from './assets/cloud1.png';
@@ -170,7 +172,7 @@ export class MainScene extends Scene {
       tiger: {
         description: 'Tiger: -5 \u2B50\nMake a tiger',
         image: 'tiger_ability',
-        cursor: tigerAbilityImage,
+        cursor: tigerCursorImage,
         cost: 5,
         sound: 'tiger',
         do: (grid, x, y) => {
@@ -186,7 +188,7 @@ export class MainScene extends Scene {
       sheep: {
         description: 'Sheep: -3 \u2B50\nMake a sheep',
         image: 'sheep_ability',
-        cursor: sheepAbilityImage,
+        cursor: sheepCursorImage,
         cost: 3,
         sound: 'sheep',
         do: (grid, x, y) => {
