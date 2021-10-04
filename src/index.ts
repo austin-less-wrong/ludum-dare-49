@@ -2,7 +2,7 @@ import {range, random, values} from 'lodash-es';
 import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound, Tweens} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
-import {Rock, Grass, Sheep, Wolf} from './GridObjects';
+import {Rock, Grass, Sheep, Tiger} from './GridObjects';
 import borderImage from './assets/borders.png';
 import uiFrameImage from './assets/ui_frame.png';
 import musicImage from './assets/music.png';
@@ -11,7 +11,7 @@ import powerImage from './assets/power.png';
 import abilityFrameImage from './assets/ability_frame.png';
 import sheepAbilityImage from './assets/sheep_ability.png';
 import grassAbilityImage from './assets/grass_ability.png';
-import wolfAbilityImage from './assets/wolf_ability.png';
+import tigerAbilityImage from './assets/tiger_ability.png';
 import rainAbilityImage from './assets/rain_ability.png';
 import rainCursorImage from './assets/rain_ability_cursor.png';
 import cloud1Image from './assets/cloud1.png';
@@ -103,7 +103,7 @@ export class MainScene extends Scene {
     this.load.image('ability_frame', abilityFrameImage);
     this.load.image('sheep_ability', sheepAbilityImage);
     this.load.image('grass_ability', grassAbilityImage);
-    this.load.image('wolf_ability', wolfAbilityImage);
+    this.load.image('tiger_ability', tigerAbilityImage);
     this.load.image('rain_ability', rainAbilityImage);
     this.load.image('cloud1', cloud1Image);
     this.load.image('cloud2', cloud2Image);
@@ -141,7 +141,7 @@ export class MainScene extends Scene {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     for(const item of range(0, 50)) {
-      while(!this.grid.tryAdd(new Wolf(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
+      while(!this.grid.tryAdd(new Tiger(random(0, this.grid.width), random(0, this.grid.height)))) { /* Keep trying until item is placed */ }
     }
 
     this.keys = this.input.keyboard.createCursorKeys();
@@ -167,15 +167,15 @@ export class MainScene extends Scene {
     });
 
     this.abilities = {
-      wolf: {
-        description: 'Wolf: -5 \u2B50\nMake a wolf',
-        image: 'wolf_ability',
-        cursor: wolfAbilityImage,
+      tiger: {
+        description: 'Tiger: -5 \u2B50\nMake a tiger',
+        image: 'tiger_ability',
+        cursor: tigerAbilityImage,
         cost: 5,
-        sound: 'wolf',
+        sound: 'tiger',
         do: (grid, x, y) => {
-          if(grid.tryAdd(new Wolf(x, y))) {
-            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'wolf_ability');
+          if(grid.tryAdd(new Tiger(x, y))) {
+            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'tiger_ability');
             return true;
           } else {
             this.flashError('Can\'t place that there');
@@ -245,7 +245,7 @@ export class MainScene extends Scene {
       click: this.sound.add('click', { volume: 0.2 }),
       swish: this.sound.add('swish', { volume: 0.1 }),
       fail: this.sound.add('fail', { volume: 0.6 }),
-      wolf: this.sound.add('wolf', { volume: 0.1 }),
+      tiger: this.sound.add('wolf', { volume: 0.1 }),
       sheep: this.sound.add('sheep', { volume: 0.1 }),
       rain: this.sound.add('rain', { volume: 0.1 }),
     };

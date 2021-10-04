@@ -78,8 +78,8 @@ export class Sheep extends GridObject {
   }
 }
 
-export class Wolf extends GridObject {
-  static label = 'Wolf';
+export class Tiger extends GridObject {
+  static label = 'Tiger';
   static tags = ['carnivore'];
   static tile = 3;
   static layer = 'foreground' as const;
@@ -92,7 +92,7 @@ export class Wolf extends GridObject {
       const sheepDirection = grid.directionTo(this.location, closestSheep.location);
       if (!grid.tryMove(this, this.location.x + sheepDirection.x, this.location.y + sheepDirection.y)) {
         // If we can't move directly towards it, at least don't move directly away.
-        // NOTE: if we can only move directly away, the wolf just stays still.
+        // NOTE: if we can only move directly away, the tiger just stays still.
         for(const direction of shuffle(grid.directions)) {
           // TODO: this == 2 seems wrong
           if (Math.abs(direction.x - sheepDirection.x) === 2 || Math.abs(direction.y - sheepDirection.y) === 2) {
@@ -121,7 +121,7 @@ export class Wolf extends GridObject {
       this.stepsSinceEat = 0;
       if(Math.random() < 0.5) {
         for(const direction of shuffle(grid.directions)) {
-          if(grid.tryAdd(new Wolf(this.location.x + direction.x, this.location.y + direction.y))) {
+          if(grid.tryAdd(new Tiger(this.location.x + direction.x, this.location.y + direction.y))) {
             break;
           }
         }
