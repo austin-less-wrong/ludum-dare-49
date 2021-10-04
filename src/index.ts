@@ -38,11 +38,13 @@ interface Ability {
 
 export class LoseScene extends Scene {
   private deathMessage: string | undefined = 'Unknown lose condition.';
+  private secondsElapsed = 0;
   constructor() {
     super({key: 'lose'});
   }
 
-  init(data: { species: typeof GridObject }) {
+  init(data: { species: typeof GridObject, timeElapsed: number }) {
+    this.secondsElapsed = Math.floor(data.timeElapsed / 1000);
     this.deathMessage = (function() {
       switch(data.species) {
       case Sheep:
@@ -71,6 +73,12 @@ export class LoseScene extends Scene {
     this.add.text(
       this.sys.game.canvas.width / 2,
       this.sys.game.canvas.height / 2 + 50,
+      `Time survived: ${this.secondsElapsed}s`,
+      { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
+    ).setOrigin(0.5);
+    this.add.text(
+      this.sys.game.canvas.width / 2,
+      this.sys.game.canvas.height / 2 + 75,
       'Click anywhere to start over.',
       { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
     ).setOrigin(0.5);
@@ -107,6 +115,7 @@ export class MainScene extends Scene {
   loadComplete = false;
 
   power = 0;
+  startTime = 0;
 
   constructor() {
     super({key: 'main'});
@@ -173,6 +182,7 @@ export class MainScene extends Scene {
   }
 
   create() {
+    this.startTime = Date.now();
     this.power = 50;
 
     this.borders = this.add.tileSprite(0, 0, this.sys.game.canvas.width * this.maxZoom, this.sys.game.canvas.height * this.maxZoom, 'borders');
@@ -408,6 +418,11 @@ export class MainScene extends Scene {
       this.grid.step();
     }
     this.grid.update();
+    const extinctType = this.grid.getExtinctSpeciesIfAny();
+    if (extinctType) {
+      this.grid.removeAll();
+      this.scene.start('lose', { species: extinctType, timeElapsed: Date.now() - this.startTime });
+    }
 
     this.power += this.powerGainRate * delta * 0.001;
     this.powerDisplay.setText(`x${Math.floor(this.power)}`);

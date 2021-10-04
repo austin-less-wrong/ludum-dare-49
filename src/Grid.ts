@@ -112,6 +112,15 @@ export class Grid {
     }
   }
 
+  getExtinctSpeciesIfAny() {
+    for (const [type, count] of this.objectTypeToCount.entries()) {
+      if (isLiving(type) && count === 0) {
+        return type;
+      }
+    }
+    return undefined;
+  }
+
   objectsAt(x: number, y: number, layer?: 'background' | 'foreground') {
     // todo: create a spatial index
     return this.objects.filter(object => object.location.x === x && object.location.y === y && (!layer || object.type.layer === layer));
