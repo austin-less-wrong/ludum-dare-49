@@ -209,7 +209,7 @@ export class MainScene extends Scene {
         description: 'Rain: -10 \u2B50\nSummon rain to generate plants',
         image: 'rain_ability',
         cursor: rainCursorImage,
-        cost: 1,
+        cost: 10,
         do: (grid, x, y) => {
           this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'rain', 3000);
           const interval = setInterval(() => grid.tryAdd(new Grass(x + random(-2, 2), y + random(-2, 2))), 200);
@@ -328,7 +328,7 @@ export class MainScene extends Scene {
     const text = this.add.text(0, 0, message, {fontFamily: 'Helvetica', fontSize: '20px', color: '0x000'});
     text.x = this.sys.game.canvas.width / 2 - text.width / 2;
     text.y = 100 - text.height / 2;
-    const rectangle = this.add.rectangle(text.x - 10, text.y - 10, text.width + 20, text.height + 20, 0xff0000, 0.8);
+    const rectangle = this.add.rectangle(text.x - 10, text.y - 10, text.width + 20, text.height + 20, 0xff5555, 0.8);
     rectangle.setOrigin(0, 0).setStrokeStyle(2, 0x000000);
     if(this.error) {
       this.error.container.destroy();

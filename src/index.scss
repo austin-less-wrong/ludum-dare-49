@@ -1,3 +1,29 @@
-body {
-  background: #333;
+@import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Cabin+Sketch:wght@700&display=swap');
+
+body, html {
+  background: #a1ae25;
+  margin: 0;
+  padding: 0;
+  font-family: 'Architects Daughter', cursive;
+  color: #31210d;
+}
+
+main {
+  background: #e1dc6b;
+  text-align: center;
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1 {
+  font-family: 'Cabin Sketch', cursive;
+  font-size: 70px;
+  margin: 10px 0 20px 0;
+}
+
+h2 {
+  margin: 0;
 }
