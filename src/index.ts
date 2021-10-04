@@ -250,10 +250,10 @@ export class MainScene extends Scene {
 
     this.abilities = {
       bomb: {
-        description: 'Bomb: -30 \u2B50\nSometimes you gotta do\nwhat you gotta do',
+        description: 'Bomb: -15 \u2B50\nSometimes you gotta do\nwhat you gotta do',
         image: 'bomb_ability',
         cursor: bombCursorImage,
-        cost: 30,
+        cost: 15,
         sound: 'explosion',
         do: (grid, x, y) => {
           this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'bomb', 1000);
@@ -271,10 +271,10 @@ export class MainScene extends Scene {
         },
       },
       tiger: {
-        description: 'Tiger: -20 \u2B50\nMake a tiger',
+        description: 'Tiger: -10 \u2B50\nMake a tiger',
         image: 'tiger_ability',
         cursor: tigerCursorImage,
-        cost: 20,
+        cost: 10,
         sound: 'tiger',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Tiger(x, y))) {
@@ -287,10 +287,10 @@ export class MainScene extends Scene {
         },
       },
       sheep: {
-        description: 'Sheep: -10 \u2B50\nMake a sheep',
+        description: 'Sheep: -5 \u2B50\nMake a sheep',
         image: 'sheep_ability',
         cursor: sheepCursorImage,
-        cost: 10,
+        cost: 5,
         sound: 'sheep',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Sheep(x, y))) {
@@ -303,10 +303,10 @@ export class MainScene extends Scene {
         },
       },
       rain: {
-        description: 'Rain: -10 \u2B50\nSummon rain to generate plants',
+        description: 'Rain: -5 \u2B50\nSummon rain to generate plants',
         image: 'rain_ability',
         cursor: rainCursorImage,
-        cost: 10,
+        cost: 5,
         sound: 'rain',
         do: (grid, x, y) => {
           this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'rain', 3000);
