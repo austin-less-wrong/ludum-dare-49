@@ -20,12 +20,16 @@ import musicSound from './assets/music.mp3';
 import clickSound from './assets/click.mp3';
 import swishSound from './assets/swish.mp3';
 import failSound from './assets/fail.mp3';
+import sheepSound from './assets/sheep.mp3';
+import wolfSound from './assets/wolf.mp3';
+import rainSound from './assets/click.mp3';
 
 interface Ability {
   description: string,
   image: string,
   cursor: string,
   cost: number,
+  sound: string,
   tooltip?: GameObjects.Container,
   do: (grid: Grid, x: number, y: number) => unknown,
 }
@@ -108,6 +112,9 @@ export class MainScene extends Scene {
     this.load.audio('click', clickSound);
     this.load.audio('swish', swishSound);
     this.load.audio('fail', failSound);
+    this.load.audio('sheep', sheepSound);
+    this.load.audio('wolf', wolfSound);
+    this.load.audio('rain', rainSound);
     this.grid.preload();
   }
 
@@ -165,6 +172,7 @@ export class MainScene extends Scene {
         image: 'wolf_ability',
         cursor: wolfAbilityImage,
         cost: 5,
+        sound: 'wolf',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Wolf(x, y))) {
             this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'wolf_ability');
@@ -180,24 +188,10 @@ export class MainScene extends Scene {
         image: 'sheep_ability',
         cursor: sheepAbilityImage,
         cost: 3,
+        sound: 'sheep',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Sheep(x, y))) {
             this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'sheep_ability');
-            return true;
-          } else {
-            this.flashError('Can\'t place that there');
-            return false;
-          }
-        },
-      },
-      grass: {
-        description: 'Grass: -1 \u2B50\nMake a grass',
-        image: 'grass_ability',
-        cursor: grassAbilityImage,
-        cost: 1,
-        do: (grid, x, y) => {
-          if(grid.tryAdd(new Grass(x, y))) {
-            this.showImageEffect(x * grid.tileSize, y * grid.tileSize, 'grass_ability');
             return true;
           } else {
             this.flashError('Can\'t place that there');
@@ -210,6 +204,7 @@ export class MainScene extends Scene {
         image: 'rain_ability',
         cursor: rainCursorImage,
         cost: 10,
+        sound: 'rain',
         do: (grid, x, y) => {
           this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'rain', 3000);
           const interval = setInterval(() => grid.tryAdd(new Grass(x + random(-2, 2), y + random(-2, 2))), 200);
@@ -250,6 +245,9 @@ export class MainScene extends Scene {
       click: this.sound.add('click', { volume: 0.2 }),
       swish: this.sound.add('swish', { volume: 0.1 }),
       fail: this.sound.add('fail', { volume: 0.6 }),
+      wolf: this.sound.add('wolf', { volume: 0.1 }),
+      sheep: this.sound.add('sheep', { volume: 0.1 }),
+      rain: this.sound.add('rain', { volume: 0.1 }),
     };
     this.sound.pauseOnBlur = false;
   }
@@ -287,7 +285,7 @@ export class MainScene extends Scene {
       const y = Math.floor(position.y / this.grid.tileSize);
       if(this.currentAbility.do(this.grid, x, y)) {
         this.power -= this.currentAbility.cost;
-        this.sounds.click.play();
+        this.sounds[this.currentAbility.sound].play();
       } else {
         this.sounds.fail.play();
       }
