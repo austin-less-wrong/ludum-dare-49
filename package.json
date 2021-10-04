@@ -5,8 +5,8 @@
     "build": "mix --production",
     "lint:scripts": "eslint --ext .ts src || true",
     "format:scripts": "eslint --fix --ext .ts src || true",
-    "lint:styles": "stylelint 'src/**/*.scss' || true",
-    "format:styles": "stylelint --fix 'src/**/*.scss' || true",
+    "lint:styles": "stylelint src/**/*.scss || true",
+    "format:styles": "stylelint --fix src/**/*.scss || true",
     "lint": "yarn lint:scripts && yarn lint:styles",
     "format": "yarn format:scripts && yarn format:styles"
   },
