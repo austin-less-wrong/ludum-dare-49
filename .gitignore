@@ -2,3 +2,5 @@ node_modules
 public
 
 .vscode/
+*.DS_Store
+package-lock.json
