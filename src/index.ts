@@ -181,7 +181,7 @@ export class MainScene extends Scene {
       { type: Rock, count: 100 },
       { type: Grass, count: 600 },
       { type: Sheep, count: 100 },
-      { type: Tiger, count: 20 },
+      { type: Tiger, count: 2 },
     ];
     for(const { type, count } of startingCounts) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
