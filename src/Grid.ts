@@ -21,9 +21,9 @@ export class Grid {
     this.directions.push(new PhaserMath.Vector2(0, -1));
   }
 
-  preload() {
-    this.scene.load.image('ground', groundImage);
-    this.scene.load.image('tileset', tilesetImage);
+  static preload(scene: Scene) {
+    scene.load.image('ground', groundImage);
+    scene.load.image('tileset', tilesetImage);
   }
 
   create() {
@@ -152,7 +152,7 @@ export class Grid {
     return minBy(this.objects.filter(object => {
       if(criteria && criteria.label && object.type.label !== criteria.label) {
         return false;
-      } else if(criteria && criteria.tags && every(criteria.tags, tag => object.type.tags.includes(tag))) {
+      } else if(criteria && criteria.tags && !every(criteria.tags, tag => object.type.tags.includes(tag))) {
         return false;
       } else if(criteria && criteria.not && object === criteria.not) {
         return false;

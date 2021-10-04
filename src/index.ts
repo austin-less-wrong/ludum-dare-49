@@ -1,8 +1,8 @@
-import {range, random, values} from 'lodash-es';
+import {range, random, values, shuffle} from 'lodash-es';
 import {Game, Scene, GameObjects, Types, Math as PhaserMath, Geom, Sound, Tweens} from 'phaser';
 import {deltaInterp} from './Utilities';
 import {Grid} from './Grid';
-import {Rock, Grass, Sheep, Tiger, GridObject} from './GridObjects';
+import {GridObject, Rock, Grass, DiseasedGrass, Sheep, DiseasedSheep, Tiger, DiseasedTiger} from './GridObjects';
 import borderImage from './assets/borders.png';
 import uiFrameImage from './assets/ui_frame.png';
 import musicImage from './assets/music.png';
@@ -16,8 +16,13 @@ import tigerAbilityImage from './assets/tiger_ability.png';
 import tigerCursorImage from './assets/tiger_ability_cursor.png';
 import rainAbilityImage from './assets/rain_ability.png';
 import rainCursorImage from './assets/rain_ability_cursor.png';
+import bombAbilityImage from './assets/bomb_ability.png';
+import bombCursorImage from './assets/bomb_ability_cursor.png';
+import endBgImage from './assets/endbg.png';
 import cloud1Image from './assets/cloud1.png';
 import cloud2Image from './assets/cloud2.png';
+import bomb1Image from './assets/bomb1.png';
+import bomb2Image from './assets/bomb2.png';
 import musicSound from './assets/music.mp3';
 import clickSound from './assets/click.mp3';
 import swishSound from './assets/swish.mp3';
@@ -25,6 +30,7 @@ import failSound from './assets/fail.mp3';
 import sheepSound from './assets/sheep.mp3';
 import tigerSound from './assets/tiger.mp3';
 import rainSound from './assets/rain.mp3';
+import explosionSound from './assets/explosion.mp3';
 
 interface Ability {
   description: string,
@@ -58,6 +64,7 @@ export class LoseScene extends Scene {
   }
 
   create() {
+    this.add.image(0, 0, 'endbg').setOrigin(0, 0);
     this.add.text(
       this.sys.game.canvas.width / 2,
       this.sys.game.canvas.height / 2 - 25,
@@ -73,7 +80,7 @@ export class LoseScene extends Scene {
     this.add.text(
       this.sys.game.canvas.width / 2,
       this.sys.game.canvas.height / 2 + 50,
-      `Time survived: ${this.secondsElapsed}s`,
+      `Time survived: ${this.secondsElapsed} seconds`,
       { fontFamily: 'Helvetica', fontSize: '20px', color: 'white' },
     ).setOrigin(0.5);
     this.add.text(
@@ -107,13 +114,14 @@ export class MainScene extends Scene {
   sounds: Record<string, Sound.BaseSound> = {};
   borders!: GameObjects.TileSprite;
   effects!: GameObjects.Container;
-  grid = new Grid(this, 129, 80, 64);
   powerGainRate = 1;
   abilities: Record<string, Ability> = {};
   currentAbility: Ability | null = null;
   justClickedAbility = false;
+  stepRate = 5;
   loadComplete = false;
 
+  grid!: Grid;
   power = 0;
   startTime = 0;
 
@@ -168,9 +176,13 @@ export class MainScene extends Scene {
     this.load.image('grass_ability', grassAbilityImage);
     this.load.image('tiger_ability', tigerAbilityImage);
     this.load.image('rain_ability', rainAbilityImage);
+    this.load.image('bomb_ability', bombAbilityImage);
     this.load.image('cloud1', cloud1Image);
     this.load.image('cloud2', cloud2Image);
+    this.load.image('bomb1', bomb1Image);
+    this.load.image('bomb2', bomb2Image);
     this.load.image('power', powerImage);
+    this.load.image('endbg', endBgImage);
     this.load.audio('music', musicSound);
     this.load.audio('click', clickSound);
     this.load.audio('swish', swishSound);
@@ -178,23 +190,25 @@ export class MainScene extends Scene {
     this.load.audio('sheep', sheepSound);
     this.load.audio('tiger', tigerSound);
     this.load.audio('rain', rainSound);
-    this.grid.preload();
+    this.load.audio('explosion', explosionSound);
+    Grid.preload(this);
   }
 
   create() {
     this.startTime = Date.now();
-    this.power = 50;
+    this.power = 30;
 
     this.borders = this.add.tileSprite(0, 0, this.sys.game.canvas.width * this.maxZoom, this.sys.game.canvas.height * this.maxZoom, 'borders');
     this.borders.setOrigin(0, 0);
 
+    this.grid = new Grid(this, 129, 80, 64);
     this.grid.create();
 
     const startingCounts = [
       { type: Rock, count: 100 },
-      { type: Grass, count: 600 },
+      { type: Grass, count: 500 },
       { type: Sheep, count: 100 },
-      { type: Tiger, count: 3 },
+      { type: Tiger, count: 10 },
     ];
     for(const { type, count } of startingCounts) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -224,13 +238,43 @@ export class MainScene extends Scene {
       frameRate: 3,
       repeat: -1,
     });
+    this.anims.create({
+      key: 'bomb',
+      frames: [
+        { key: 'bomb1' },
+        { key: 'bomb2' },
+      ],
+      frameRate: 10,
+      repeat: -1,
+    });
 
     this.abilities = {
+      bomb: {
+        description: 'Bomb: -30 \u2B50\nSometimes you gotta do\nwhat you gotta do',
+        image: 'bomb_ability',
+        cursor: bombCursorImage,
+        cost: 30,
+        sound: 'explosion',
+        do: (grid, x, y) => {
+          this.showAnimation(x * grid.tileSize, y * grid.tileSize, 'bomb', 1000);
+          const size = 7;
+          for(const eachX of range(-size, size)) {
+            for(const eachY of range(-size, size)) {
+              const distance = Math.sqrt(eachX * eachX + eachY * eachY);
+              if(distance > size) {
+                continue;
+              }
+              this.grid.objectsAt(x + eachX, y + eachY).map(object => this.grid.remove(object));
+            }
+          }
+          return true;
+        },
+      },
       tiger: {
-        description: 'Tiger: -5 \u2B50\nMake a tiger',
+        description: 'Tiger: -20 \u2B50\nMake a tiger',
         image: 'tiger_ability',
         cursor: tigerCursorImage,
-        cost: 5,
+        cost: 20,
         sound: 'tiger',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Tiger(x, y))) {
@@ -243,10 +287,10 @@ export class MainScene extends Scene {
         },
       },
       sheep: {
-        description: 'Sheep: -3 \u2B50\nMake a sheep',
+        description: 'Sheep: -10 \u2B50\nMake a sheep',
         image: 'sheep_ability',
         cursor: sheepCursorImage,
-        cost: 3,
+        cost: 10,
         sound: 'sheep',
         do: (grid, x, y) => {
           if(grid.tryAdd(new Sheep(x, y))) {
@@ -303,12 +347,31 @@ export class MainScene extends Scene {
       music: this.sound.add('music', { loop: true }),
       click: this.sound.add('click', { volume: 0.2 }),
       swish: this.sound.add('swish', { volume: 0.1 }),
-      fail: this.sound.add('fail', { volume: 0.6 }),
+      fail: this.sound.add('fail', { volume: 0.8 }),
       tiger: this.sound.add('tiger', { volume: 0.1 }),
       sheep: this.sound.add('sheep', { volume: 0.1 }),
       rain: this.sound.add('rain', { volume: 0.4 }),
+      explosion: this.sound.add('explosion', { volume: 1 }),
     };
+    this.sounds.music.play();
     this.sound.pauseOnBlur = false;
+
+    setInterval(() => {
+      const randomObjects = shuffle(this.grid.objects);
+      for(const type of shuffle(['Grass', 'Grass', 'Grass', 'Sheep', 'Sheep', 'Sheep', 'Tiger'])) {
+        const victim = randomObjects.find(object => object.type.label === type);
+        if(victim) {
+          const Creature = type === 'Grass' ? DiseasedGrass : type === 'Sheep' ? DiseasedSheep : DiseasedTiger;
+          this.grid.remove(victim);
+          const diseased = new Creature(victim.location.x, victim.location.y);
+          if(type !== 'Grass') {
+            (diseased as DiseasedSheep|DiseasedTiger).stepsSinceEat = (victim as Sheep|Tiger).stepsSinceEat;
+          }
+          this.grid.add(diseased);
+          break;
+        }
+      }
+    }, 3000);
   }
 
   toggleMusic() {
@@ -364,6 +427,7 @@ export class MainScene extends Scene {
 
   showAnimation(x: number, y: number, animation: string, duration: number) {
     const sprite = this.add.sprite(x, y, animation).play(animation);
+    sprite.scale = 1.2;
     setTimeout(() => sprite.destroy(), duration);
     this.effects.add(sprite);
   }
@@ -413,13 +477,17 @@ export class MainScene extends Scene {
 
   update(time: number, delta: number) {
     this.accumulator += delta;
-    if(this.accumulator > 1000) {
-      this.accumulator -= 1000;
+    if(this.accumulator > 1000 / this.stepRate) {
+      this.accumulator -= 1000 / this.stepRate;
       this.grid.step();
     }
     this.grid.update();
     const extinctType = this.grid.getExtinctSpeciesIfAny();
     if (extinctType) {
+      this.sounds.music.stop();
+      this.currentAbility = null;
+      game.canvas.style.cursor = 'default';
+      this.input.setDefaultCursor('pointer');
       this.grid.removeAll();
       this.scene.start('lose', { species: extinctType, timeElapsed: Date.now() - this.startTime });
     }
@@ -459,7 +527,7 @@ export class MainScene extends Scene {
       } else if(this.currentAbility && this.justClicked && !this.justClickedAbility) {
         this.currentAbility = null;
         this.sounds.swish.play();
-        game.canvas.style.cursor = 'default';
+        this.input.setDefaultCursor('pointer');
       }
       this.justClicked = false;
     } else {
@@ -470,6 +538,7 @@ export class MainScene extends Scene {
       if(this.currentAbility) {
         this.currentAbility = null;
         this.sounds.swish.play();
+        this.input.setDefaultCursor('pointer');
       }
     }
     this.justClickedAbility = false;

@@ -28,13 +28,13 @@ export abstract class GridObject {
     this.location = new PhaserMath.Vector2(x, y);
   }
 
-  abstract update(grid: Grid): void;
+  abstract update(grid: Grid): unknown;
 }
 
 export class Rock extends GridObject {
   static label = 'Rock';
   static tags = ['inanimate'];
-  static tile = 4;
+  static tile = 6;
   static layer = 'foreground' as const;
   update() {
     // Do nothing
@@ -46,13 +46,34 @@ export class Grass extends GridObject {
   static tags = ['plant'];
   static tile = 0;
   static layer = 'background' as const;
-  update(grid: Grid) {
+  update(grid: Grid): unknown {
     if(Math.random() < 0.2) {
       const direction = grid.randomDirection();
       grid.tryAdd(new Grass(this.location.x + direction.x, this.location.y + direction.y));
     }
     if(Math.random() > 0.97) {
       grid.remove(this);
+      return false;
+    }
+    return true;
+  }
+}
+
+export class DiseasedGrass extends Grass {
+  static label = 'DiseasedGrass';
+  static tile = 1;
+  update(grid: Grid) {
+    if(super.update(grid)) {
+      if(Math.random() < 0.4) {
+        grid.remove(this);
+      }
+      if(Math.random() < 0.7) {
+        const closestGrass = grid.closestObject(this.location.x, this.location.y, { label: 'Grass' });
+        if(closestGrass && grid.distanceTo(this.location, closestGrass.location) <= 2) {
+          grid.remove(closestGrass);
+          grid.add(new DiseasedGrass(closestGrass.location.x, closestGrass.location.y));
+        }
+      }
     }
   }
 }
@@ -60,21 +81,21 @@ export class Grass extends GridObject {
 export class Sheep extends GridObject {
   static label = 'Sheep';
   static tags = ['herbivore'];
-  static tile = 1;
+  static tile = 2;
   static layer = 'foreground' as const;
   stepsSinceEat = 0;
-  update(grid: Grid) {
-    const closestSheep = grid.closestObject(this.location.x, this.location.y, { label: 'Sheep', not: this });
-    const sheepDirection = closestSheep ? grid.directionTo(closestSheep.location, this.location) : null;
-    if(!sheepDirection || !grid.tryMove(this, this.location.x + sheepDirection.x, this.location.y + sheepDirection.y)) {
+  update(grid: Grid): unknown {
+    const closestHerbivore = grid.closestObject(this.location.x, this.location.y, { tags: ['herbivore'], not: this });
+    const herbivoreDirection = closestHerbivore ? grid.directionTo(closestHerbivore.location, this.location) : null;
+    if(!herbivoreDirection || !grid.tryMove(this, this.location.x + herbivoreDirection.x, this.location.y + herbivoreDirection.y)) {
       for(const direction of shuffle(grid.directions)) {
         if(grid.tryMove(this, this.location.x + direction.x, this.location.y + direction.y)) {
           break;
         }
       }
     }
-    const closestGrass = grid.closestObject(this.location.x, this.location.y, { label: 'Grass' });
-    const food = closestGrass && grid.distanceTo(this.location, closestGrass.location) <= 3 ? closestGrass : null;
+    const closestPlant = grid.closestObject(this.location.x, this.location.y, { tags: ['plant'] });
+    const food = closestPlant && grid.distanceTo(this.location, closestPlant.location) <= 3 ? closestPlant : null;
     if(food) {
       this.stepsSinceEat = 0;
     }
@@ -85,8 +106,31 @@ export class Sheep extends GridObject {
       }
     }
     this.stepsSinceEat += 1;
-    if(this.stepsSinceEat > 5) {
+    if(this.stepsSinceEat > 7) {
       grid.remove(this);
+      return false;
+    }
+    return true;
+  }
+}
+
+export class DiseasedSheep extends Sheep {
+  static label = 'DiseasedSheep';
+  static tile = 3;
+  update(grid: Grid) {
+    if(super.update(grid)) {
+      if(Math.random() < 0.4) {
+        grid.remove(this);
+      }
+      if(Math.random() < 0.7) {
+        const closestSheep = grid.closestObject(this.location.x, this.location.y, { label: 'Sheep' });
+        if(closestSheep && grid.distanceTo(this.location, closestSheep.location) <= 5) {
+          grid.remove(closestSheep);
+          const diseased = new DiseasedSheep(closestSheep.location.x, closestSheep.location.y);
+          diseased.stepsSinceEat = (closestSheep as Sheep).stepsSinceEat;
+          grid.add(diseased);
+        }
+      }
     }
   }
 }
@@ -94,21 +138,21 @@ export class Sheep extends GridObject {
 export class Tiger extends GridObject {
   static label = 'Tiger';
   static tags = ['carnivore'];
-  static tile = 3;
+  static tile = 4;
   static layer = 'foreground' as const;
   stepsSinceEat = 0;
-  update(grid: Grid) {
-    const closestSheep = grid.closestObject(this.location.x, this.location.y, { label: 'Sheep' });
-    // Walk towards the closest sheep, but only if we're not already standing next to it.
-    let sheepDistance = closestSheep && grid.distanceTo(this.location, closestSheep.location);
-    if (closestSheep && sheepDistance && sheepDistance > 1) {
-      const sheepDirection = grid.directionTo(this.location, closestSheep.location);
-      if (!grid.tryMove(this, this.location.x + sheepDirection.x, this.location.y + sheepDirection.y)) {
+  update(grid: Grid): unknown {
+    const closestHerbivore = grid.closestObject(this.location.x, this.location.y, { tags: ['herbivore'] });
+    // Walk towards the closest herbivore, but only if we're not already standing next to it.
+    let herbivoreDistance = closestHerbivore && grid.distanceTo(this.location, closestHerbivore.location);
+    if (closestHerbivore && herbivoreDistance && herbivoreDistance > 1) {
+      const herbivoreDirection = grid.directionTo(this.location, closestHerbivore.location);
+      if (!grid.tryMove(this, this.location.x + herbivoreDirection.x, this.location.y + herbivoreDirection.y)) {
         // If we can't move directly towards it, at least don't move directly away.
         // NOTE: if we can only move directly away, the tiger just stays still.
         for(const direction of shuffle(grid.directions)) {
           // TODO: this == 2 seems wrong
-          if (Math.abs(direction.x - sheepDirection.x) === 2 || Math.abs(direction.y - sheepDirection.y) === 2) {
+          if (Math.abs(direction.x - herbivoreDirection.x) === 2 || Math.abs(direction.y - herbivoreDirection.y) === 2) {
             continue;
           }
           if (grid.tryMove(this, this.location.x + direction.x, this.location.y + direction.y)) {
@@ -116,8 +160,8 @@ export class Tiger extends GridObject {
           }
         }
       }
-    // If there's no sheep on the grid, just mill around aimlessly.
-    } else if (!closestSheep) {
+    // If there's no herbivore on the grid, just mill around aimlessly.
+    } else if (!closestHerbivore) {
       for(const direction of shuffle(grid.directions)) {
         if(grid.tryMove(this, this.location.x + direction.x, this.location.y + direction.y)) {
           break;
@@ -125,11 +169,11 @@ export class Tiger extends GridObject {
       }
     }
 
-    // If we're next to a sheep, eat it!
-    sheepDistance = closestSheep && grid.distanceTo(this.location, closestSheep.location);
-    if (closestSheep && sheepDistance === 1) {
-      const newLocation = closestSheep.location;
-      grid.remove(closestSheep);
+    // If we're next to a herbivore, eat it!
+    herbivoreDistance = closestHerbivore && grid.distanceTo(this.location, closestHerbivore.location);
+    if (closestHerbivore && herbivoreDistance === 1) {
+      const newLocation = closestHerbivore.location;
+      grid.remove(closestHerbivore);
       grid.move(this, newLocation.x, newLocation.y);
       this.stepsSinceEat = 0;
       if(Math.random() < 0.5) {
@@ -143,8 +187,31 @@ export class Tiger extends GridObject {
 
     this.stepsSinceEat += 1;
     // if tigers go too long between eating, they starve to death.
-    if(this.stepsSinceEat > 5) {
+    if(this.stepsSinceEat > 7) {
       grid.remove(this);
+      return false;
+    }
+    return true;
+  }
+}
+
+export class DiseasedTiger extends Tiger {
+  static label = 'DiseasedTiger';
+  static tile = 5;
+  update(grid: Grid) {
+    if(super.update(grid)) {
+      if(Math.random() < 0.4) {
+        grid.remove(this);
+      }
+      if(Math.random() < 0.7) {
+        const closestTiger = grid.closestObject(this.location.x, this.location.y, { label: 'Tiger' });
+        if(closestTiger && grid.distanceTo(this.location, closestTiger.location) <= 5) {
+          grid.remove(closestTiger);
+          const diseased = new DiseasedTiger(closestTiger.location.x, closestTiger.location.y);
+          diseased.stepsSinceEat = (closestTiger as Tiger).stepsSinceEat;
+          grid.add(diseased);
+        }
+      }
     }
   }
 }
